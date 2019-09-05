@@ -1,7 +1,7 @@
 extern crate nom;
 
 use nom::{
-    branch::alt, bytes::complete::tag, character::complete::space0, number::complete::double,
+    branch::alt, bytes::complete::tag, character::complete::multispace0, number::complete::double,
     IResult,
 };
 
@@ -27,7 +27,7 @@ fn parse_op(s: &str) -> IResult<&str, &str> {
 }
 
 fn remove_whitespace(s: &str) -> IResult<&str, &str> {
-    space0(s)
+    multispace0(s)
 }
 
 fn parse_expr(s: &str) -> Node {
