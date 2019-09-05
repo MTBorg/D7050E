@@ -6,14 +6,14 @@ use nom::{
 };
 
 #[derive(Debug)]
-enum NODE_VALUE {
-    numeric(f64),
-    operator(char),
+enum NodeValue {
+    Numeric(f64),
+    Operator(char),
 }
 
 #[derive(Debug)]
 struct Node {
-    pub element: NODE_VALUE,
+    pub element: NodeValue,
     pub left_child: Option<Box<Node>>,
     pub right_child: Option<Box<Node>>,
 }
@@ -42,7 +42,7 @@ fn parse_expr(s: &str) -> Node {
     // Make sure that there is an op left to parse (needed at the end of a string)
     if s.len() == 0 {
         return Node {
-            element: NODE_VALUE::numeric(num),
+            element: NodeValue::Numeric(num),
             left_child: None,
             right_child: None,
         };
@@ -54,9 +54,9 @@ fn parse_expr(s: &str) -> Node {
     let op = op.chars().next().unwrap();
 
     return Node {
-        element: NODE_VALUE::operator(op),
+        element: NodeValue::Operator(op),
         left_child: Some(Box::new(Node {
-            element: NODE_VALUE::numeric(num),
+            element: NodeValue::Numeric(num),
             left_child: None,
             right_child: None,
         })),
