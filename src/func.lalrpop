@@ -1,0 +1,29 @@
+grammar;
+
+use crate::func::Func;
+
+pub Func: Func = {
+	"fn" <funcName: FuncName> "(" ")" => Func{
+		name: funcName,
+		params: vec!() 
+	},
+	"fn" <funcName: FuncName> "(" <funcParam: FuncParam> ")" => Func{
+		name: funcName,
+		params: funcParam 
+	}
+};
+
+FuncParam: Vec<String> = {
+	<funcParam: FuncParam> "," <funcName: FuncName> => {
+		// This is ugly but it works
+		// TODO: Find a way to do this using lalrpop
+		let mut new_vec = funcParam.clone();
+		new_vec.push(funcName);
+		new_vec
+	},
+	FuncName => vec!(<>),
+};
+	
+FuncName: String = {
+	r"_*[a-z]+\w*" => <>.to_string()
+};
