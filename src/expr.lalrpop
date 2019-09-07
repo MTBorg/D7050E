@@ -1,11 +1,12 @@
 use std::str::FromStr;
 
-use crate::parsing::expr_parser::{ Expr, Opcode };
+use crate::parsing::expr_parser::{ Opcode };
+use crate::node::Node;
 
 grammar;
 
-pub Expr: Box<Expr> = {
-    Expr ExprOp Factor => Box::new(Expr::Op(<>)),
+pub Expr: Box<Node> = {
+    Expr ExprOp Factor => Box::new(Node::Op(<>)),
     Factor,
 };
 
@@ -14,8 +15,8 @@ ExprOp: Opcode = {
     "-" => Opcode::Sub,
 };
 
-Factor: Box<Expr> = {
-    Factor FactorOp Term => Box::new(Expr::Op(<>)),
+Factor: Box<Node> = {
+    Factor FactorOp Term => Box::new(Node::Op(<>)),
     Term,
 };
 
@@ -24,9 +25,9 @@ FactorOp: Opcode = {
     "/" => Opcode::Div,
 };
 
-Term: Box<Expr> = {
-    Num => Box::new(Expr::Number(<>)), 
-		Var => Box::new(Expr::Var(<>)),
+Term: Box<Node> = {
+    Num => Box::new(Node::Number(<>)), 
+		Var => Box::new(Node::Var(<>)),
     "(" <Expr> ")"
 };
 

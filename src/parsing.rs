@@ -7,20 +7,15 @@ pub struct ParseError{
 
 pub mod expr_parser{
     use crate::parsing::ParseError;
+    use crate::node::Node;
 
-    #[derive(Debug)]
-    pub enum Expr{
-        Number(i32),
-        Var(String),
-        Op(Box<Expr>, Opcode, Box<Expr>)
-    }
     
     #[derive(Debug)]
     pub enum Opcode{
         Mul, Div, Add, Sub
     }
 
-    pub fn parse(s: &str) -> Result<Box<Expr>, ParseError>{
+    pub fn parse(s: &str) -> Result<Box<Node>, ParseError>{
         let  res = crate::parsing::expr::ExprParser::new().parse(s);
         return match res{
             Ok(s) => Ok(s),
