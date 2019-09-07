@@ -3,9 +3,8 @@
 #[macro_use] mod util;
 mod parsing;
 
-use parsing::expr_parser;
+use parsing::{expr_parser};
 
 fn main(){
-    debug_print!(expr_parser::parse("a + 2"));
-    debug_print!(expr_parser::parse("1 + 2 * 3 / 4"));
+    debug_print!(expr_parser::parse("123abc"));
 }
