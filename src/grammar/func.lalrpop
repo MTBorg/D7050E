@@ -3,22 +3,22 @@ grammar;
 use crate::func::Func;
 
 pub Func: Func = {
-	"fn" <funcName: FuncName> "(" ")" => Func{
-		name: funcName,
+	"fn" <func_name: FuncName> "(" ")" => Func{
+		name: func_name,
 		params: vec!() 
 	},
-	"fn" <funcName: FuncName> "(" <funcParam: FuncParam> ")" => Func{
-		name: funcName,
-		params: funcParam 
+	"fn" <func_name: FuncName> "(" <func_param: FuncParam> ")" => Func{
+		name: func_name,
+		params: func_param 
 	}
 };
 
 FuncParam: Vec<String> = {
-	<funcParam: FuncParam> "," <funcName: FuncName> => {
+	<func_param: FuncParam> "," <func_name: FuncName> => {
 		// This is ugly but it works
 		// TODO: Find a way to do this using lalrpop
-		let mut new_vec = funcParam.clone();
-		new_vec.push(funcName);
+		let mut new_vec = func_param.clone();
+		new_vec.push(func_name);
 		new_vec
 	},
 	FuncName => vec!(<>),
