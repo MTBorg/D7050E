@@ -3,7 +3,7 @@ use std::str::FromStr;
 use crate::parsing::expr_parser::{ Opcode };
 use crate::node::Node;
 use crate::func::FuncDec;
-use crate::funcParam::FuncParam;
+use crate::func_param::FuncParam;
 
 grammar;
 
@@ -44,10 +44,10 @@ Num: i32 = {
 Var = Identifier;
 
 pub FuncCall: Box<Node> = {
-	<funcName:Identifier> "(" <args:FuncArgs> ")" ";"? =>	
+	<func_name:Identifier> "(" <args:FuncArgs> ")" ";"? =>	
 		Box::new(
 			Node::FuncCall(
-				funcName,
+				func_name,
 				args,
 				None
 			)

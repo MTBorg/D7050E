@@ -1,4 +1,4 @@
-use crate::funcParam::FuncParam;
+use crate::func_param::FuncParam;
 
 #[derive(Debug)]
 pub struct FuncDec{

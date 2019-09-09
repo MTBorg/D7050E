@@ -4,7 +4,7 @@
 mod node;
 mod parsing;
 mod func;
-mod funcParam;
+mod func_param;
 
 use parsing::{
     expr_parser,
@@ -12,7 +12,6 @@ use parsing::{
     func_dec_parser,
     let_parser
 };
-use crate::node::Node;
 
 fn main(){
     // debug_print!(expr_parser::parse("123abc"));
