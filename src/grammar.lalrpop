@@ -3,6 +3,7 @@ use std::str::FromStr;
 use crate::parsing::expr_parser::{ Opcode };
 use crate::node::Node;
 use crate::func::Func;
+use crate::funcParam::FuncParam;
 
 grammar;
 
@@ -63,3 +64,58 @@ FuncArg: String = {
 };
 	
 FuncName = Identifier;
+
+FuncParam: FuncParam = {
+	<name:Identifier> ":" <mutable:"&"?> <_type:Type> => FuncParam{
+		name: name,
+		_type: _type.to_string(),
+		mutable: match mutable{
+			Some(_) => true,
+			None => false
+		}
+	}
+};
+
+FuncParams: Vec<FuncParam> = {
+	<params:(<FuncParam> ",")*> <param:FuncParam?> => match param{
+		Some(param) => {
+			let mut params = params;
+			params.push(param);
+			params
+		},
+		None => params
+	}
+};
+
+pub FuncDec: Func = {
+	"fn" <name:FuncName> "(" <params:FuncParams> ")" <ret_type:("->" <Type>)?> "{}" => Func{
+		name: name,
+		params: params,
+		ret_type: match ret_type{
+			Some(ret_type) => ret_type,
+			None => "".to_string()
+		}
+	}
+};
+
+// TODO: This should use a type enum instead
+Type: String = {
+	"bool" => <>.to_string(), 
+	"char" => <>.to_string(), 
+	"i8" => <>.to_string(), 
+	"i16" => <>.to_string(), 
+	"i32" => <>.to_string(), 
+	"i64" => <>.to_string(), 
+	"isize" => <>.to_string(), 
+	"u8" => <>.to_string(), 
+	"u16" => <>.to_string(), 
+	"u32" => <>.to_string(), 
+	"u64" => <>.to_string(), 
+	"usize" => <>.to_string(), 
+	"f32" => <>.to_string(), 
+	"f64" => <>.to_string(), 
+	"array" => <>.to_string(), 
+	"slice" => <>.to_string(), 
+	"str" => <>.to_string(), 
+	"tuple" => <>.to_string(), 
+}

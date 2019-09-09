@@ -24,6 +24,19 @@ pub mod expr_parser{
     }
 }
 
+
+pub mod func_dec_parser{
+    use super::ParseError;
+    use crate::func::Func;
+
+    pub fn parse(s: &str) -> Result<Func, ParseError>{
+        let res = crate::parsing::grammar::FuncDecParser::new().parse(s);
+        return match res{
+            Ok(s) => Ok(s),
+            Err(e) => Err(ParseError{message: e.to_string()}),
+        }
+    }
+}
 pub mod func_call_parser{
     use super::ParseError;
 
