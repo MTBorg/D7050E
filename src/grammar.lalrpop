@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use crate::parsing::expr_parser::{ Opcode };
 use crate::node::Node;
-use crate::func::Func;
+use crate::func::FuncDec;
 use crate::funcParam::FuncParam;
 
 grammar;
@@ -87,8 +87,8 @@ FuncParams: Vec<FuncParam> = {
 	}
 };
 
-pub FuncDec: Func = {
-	"fn" <name:FuncName> "(" <params:FuncParams> ")" <ret_type:("->" <Type>)?> "{}" => Func{
+pub FuncDec: FuncDec = {
+	"fn" <name:FuncName> "(" <params:FuncParams> ")" <ret_type:("->" <Type>)?> "{}" => FuncDec{
 		name: name,
 		params: params,
 		ret_type: match ret_type{

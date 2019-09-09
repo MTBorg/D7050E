@@ -27,9 +27,9 @@ pub mod expr_parser{
 
 pub mod func_dec_parser{
     use super::ParseError;
-    use crate::func::Func;
+    use crate::func::FuncDec;
 
-    pub fn parse(s: &str) -> Result<Func, ParseError>{
+    pub fn parse(s: &str) -> Result<FuncDec, ParseError>{
         let res = crate::parsing::grammar::FuncDecParser::new().parse(s);
         return match res{
             Ok(s) => Ok(s),
