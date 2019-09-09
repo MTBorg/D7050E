@@ -98,6 +98,17 @@ pub FuncDec: FuncDec = {
 	}
 };
 
+pub Let: Box<Node> = {
+	"let" <id:Identifier> <_type:(":" <Type>)?> "=" <expr:Expr> => 
+		Box::new(
+			Node::Let(
+				Box::new(Node::Var(id)),
+				expr,
+				None
+			)
+		),
+};
+
 // TODO: This should use a type enum instead
 Type: String = {
 	"bool" => <>.to_string(), 
