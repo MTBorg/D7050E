@@ -47,7 +47,7 @@ pub FuncCall: usize = {
 };
 
 FuncArgs: Vec<String> = {
-	<args:(<Identifier> ",")*> <arg:FuncArg?> => match arg{
+	<args:(<FuncArg> ",")*> <arg:FuncArg?> => match arg{
 		Some(arg) => {
 			let mut args = args;
 			args.push(arg);
@@ -56,7 +56,6 @@ FuncArgs: Vec<String> = {
 		None => args
 	}
 };
-
 
 FuncArg: String = {
 	Identifier,
