@@ -41,7 +41,7 @@ pub mod func_parser{
 mod tests{
     #[cfg(test)]
     mod expr{
-        use crate::parsing::expr_parser::expr::*;
+        use crate::parsing::grammar::ExprParser;
 
         #[test]
         fn test_parse_number_no_parens() {
