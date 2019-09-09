@@ -43,8 +43,15 @@ Num: i32 = {
 
 Var = Identifier;
 
-pub FuncCall: usize = {
-	Identifier"(" <args:FuncArgs> ")" ";"? => args.len()
+pub FuncCall: Box<Node> = {
+	<funcName:Identifier> "(" <args:FuncArgs> ")" ";"? =>	
+		Box::new(
+			Node::FuncCall(
+				funcName,
+				args,
+				None
+			)
+		)
 };
 
 FuncArgs: Vec<String> = {

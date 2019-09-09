@@ -1,7 +1,8 @@
 use super::ParseError;
 use crate::parsing::grammar::FuncCallParser;
+use crate::node::Node;
 
-pub fn parse(s: &str) -> Result<usize, ParseError>{
+pub fn parse(s: &str) -> Result<Box<Node>, ParseError>{
     let res = FuncCallParser::new().parse(s);
     return match res{
         Ok(s) => Ok(s),
