@@ -42,26 +42,25 @@ Num: i32 = {
 
 Var = Identifier;
 
-pub Func: Func = {
-	"fn" <func_name: FuncName> "(" ")" => Func{
-		name: func_name,
-		params: vec!() 
-	},
-	"fn" <func_name: FuncName> "(" <func_param: FuncParam> ")" => Func{
-		name: func_name,
-		params: func_param 
+pub FuncCall: usize = {
+	Identifier"(" <args:FuncArgs> ")" ";"? => args.len()
+};
+
+FuncArgs: Vec<String> = {
+	<args:(<Identifier> ",")*> <arg:FuncArg?> => match arg{
+		Some(arg) => {
+			let mut args = args;
+			args.push(arg);
+			args
+		},
+		None => args
 	}
 };
 
-FuncParam: Vec<String> = {
-	<func_param: FuncParam> "," <func_name: FuncName> => {
-		// This is ugly but it works
-		// TODO: Find a way to do this using lalrpop
-		let mut new_vec = func_param.clone();
-		new_vec.push(func_name);
-		new_vec
-	},
-	FuncName => vec!(<>),
+
+FuncArg: String = {
+	Identifier,
+	Num => <>.to_string()
 };
 	
 FuncName = Identifier;

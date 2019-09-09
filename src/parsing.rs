@@ -24,18 +24,18 @@ pub mod expr_parser{
     }
 }
 
-pub mod func_parser{
+pub mod func_call_parser{
     use super::ParseError;
-    use crate::func::Func;
 
-    pub fn parse(s: &str) -> Result<Func, ParseError>{
-        let  res = crate::parsing::grammar::FuncParser::new().parse(s);
+    pub fn parse(s: &str) -> Result<usize, ParseError>{
+        let res = crate::parsing::grammar::FuncCallParser::new().parse(s);
         return match res{
             Ok(s) => Ok(s),
             Err(e) => Err(ParseError{message: e.to_string()}),
         }
     }
 }
+
 
 #[cfg(test)]
 mod tests{
@@ -104,4 +104,14 @@ mod tests{
             assert!(!ExprParser::new().parse("1 + ! 2").is_ok()); // Unknown operator
         }
     }
+
+    // #[cfg(test)]
+    // mod func{
+    //     use crate::parsing::grammar::FuncArgsParser;
+    //     #[test]
+    //     fn test_parse_func_args_correct() {
+            
+
+    //     }
+
 }
