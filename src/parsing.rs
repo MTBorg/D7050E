@@ -1,10 +1,11 @@
+lalrpop_mod!(pub grammar);
+
 #[derive(Debug)]
 pub struct ParseError{
     message: String
 }
 
 pub mod expr_parser{
-    lalrpop_mod!(pub expr);
     use crate::parsing::ParseError;
     use crate::node::Node;
 
@@ -15,7 +16,7 @@ pub mod expr_parser{
     }
 
     pub fn parse(s: &str) -> Result<Box<Node>, ParseError>{
-        let  res = expr::ExprParser::new().parse(s);
+        let  res = crate::parsing::grammar::ExprParser::new().parse(s);
         return match res{
             Ok(s) => Ok(s),
             Err(e) => Err(ParseError{message: e.to_string()}),
@@ -24,12 +25,11 @@ pub mod expr_parser{
 }
 
 pub mod func_parser{
-    lalrpop_mod!(pub func);
     use super::ParseError;
     use crate::func::Func;
 
     pub fn parse(s: &str) -> Result<Func, ParseError>{
-        let  res = func::FuncParser::new().parse(s);
+        let  res = crate::parsing::grammar::FuncParser::new().parse(s);
         return match res{
             Ok(s) => Ok(s),
             Err(e) => Err(ParseError{message: e.to_string()}),
