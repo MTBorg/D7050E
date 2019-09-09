@@ -62,4 +62,9 @@ mod tests{
     fn test_parser_let_missing_equal_sign(){
         assert!(!LetParser::new().parse("let a: i32 4;").is_ok());
     }
+
+    #[test]
+    fn test_parser_let_missing_semi_colong(){
+        assert!(!LetParser::new().parse("let a = 2").is_ok());
+    }
 }
