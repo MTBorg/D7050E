@@ -6,7 +6,6 @@ edition = "2018"
 build = "build.rs"
 
 [dependencies]
-nom="*"
 lalrpop-util = "0.17.2"
 regex = "*"
 
