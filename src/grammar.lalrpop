@@ -1,11 +1,14 @@
+grammar;
+
 use std::str::FromStr;
 
-use crate::parsing::expr_parser::{ Opcode };
-use crate::node::Node;
-use crate::func::FuncDec;
-use crate::func_param::FuncParam;
+use crate::{
+	parsing::expr_parser::Opcode,
+	node::Node,
+	func::FuncDec,
+	func_param::FuncParam,
+};
 
-grammar;
 
 Identifier: String = {
 	r"_*[a-z]+\w*" => <>.to_string()

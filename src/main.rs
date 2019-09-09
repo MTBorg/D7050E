@@ -6,6 +6,8 @@ mod parsing;
 mod func;
 mod func_param;
 
+// TODO: Remove this eventually
+#[allow(unused_imports)]
 use parsing::{
     expr_parser,
     func_call_parser,
