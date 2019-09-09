@@ -6,6 +6,10 @@ use crate::func::Func;
 
 grammar;
 
+Identifier: String = {
+	r"_*[a-z]+\w*" => <>.to_string()
+}
+
 pub Expr: Box<Node> = {
     Expr ExprOp Factor => Box::new(Node::Op(<>)),
     Factor,
@@ -36,9 +40,7 @@ Num: i32 = {
     r"[0-9]+" => i32::from_str(<>).unwrap()
 };
 
-Var: String = {
-	r"_*[a-z]+\w*" => <>.to_string()
-}
+Var = Identifier;
 
 pub Func: Func = {
 	"fn" <func_name: FuncName> "(" ")" => Func{
@@ -62,6 +64,4 @@ FuncParam: Vec<String> = {
 	FuncName => vec!(<>),
 };
 	
-FuncName: String = {
-	r"_*[a-z]+\w*" => <>.to_string()
-};
+FuncName = Identifier;
