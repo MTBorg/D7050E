@@ -137,7 +137,10 @@ Instructions: Box<Node> = {
 };
 
 pub Body: Box<Node> = {
-	"{" <Instructions> "}" => <>
+	"{" <Instructions?> "}" => match <>{
+		Some(node) => node,
+		None => Box::new(Node::Empty)
+	}
 };
 
 pub If: Box<Node> = {

@@ -7,7 +7,8 @@ pub enum Node{
     Let(Box<Node>, Box<Node>, Option<Box<Node>>),
     FuncCall(String, Vec<String>, Option<Box<Node>>),
     Op(Box<Node>, Opcode, Box<Node>),
-    If(Box<Node>, Box<Node>, Option<Box<Node>>, Option<Box<Node>>)
+    If(Box<Node>, Box<Node>, Option<Box<Node>>, Option<Box<Node>>),
+    Empty
 }
 
 impl Node{
