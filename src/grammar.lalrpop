@@ -109,7 +109,7 @@ pub FuncDec: FuncDec = {
 };
 
 pub Let: Box<Node> = {
-	"let" <id:Identifier> <_type:(":" <Type>)?> "=" <expr:Expr> ";" => 
+	"let" <id:Identifier> <_type:(":" <Type>)?> "=" <expr:Expr> => 
 		Box::new(
 			Node::Let(
 				Box::new(Node::Var(id)),
@@ -117,6 +117,21 @@ pub Let: Box<Node> = {
 				None
 			)
 		),
+};
+
+Instruction: Box<Node> = {
+	<Let> ";" => <>
+};
+
+Instructions: Box<Node> = {
+	<mut i1:Instruction> <i2:Instruction> => {
+		i1.attach_right_most_child(*i2);
+		i1
+	}
+};
+
+pub Body: Box<Node> = {
+	"{" <Instructions> "}" => <>
 };
 
 // TODO: This should use a type enum instead
