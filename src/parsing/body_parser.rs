@@ -100,4 +100,12 @@ mod tests{
                 let c = 1000 -240
         ").is_ok());
     }
+
+    #[test]
+    pub fn test_body_parser_empty_body(){
+        assert!(parse("
+        {
+
+        }").is_ok());
+    }
 }
