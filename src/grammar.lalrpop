@@ -124,9 +124,14 @@ Instruction: Box<Node> = {
 };
 
 Instructions: Box<Node> = {
-	<mut i1:Instruction> <i2:Instruction> => {
-		i1.attach_right_most_child(*i2);
-		i1
+	<mut i1:Instruction> <i2:Instruction?> => match i2{
+		Some(node) => {
+			i1.attach_right_most_child(*node);
+			i1
+		},
+		None => {
+			i1
+		}
 	}
 };
 
