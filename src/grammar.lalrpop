@@ -120,7 +120,8 @@ pub Let: Box<Node> = {
 };
 
 Instruction: Box<Node> = {
-	<Let> ";" => <>
+	<Let> ";" => <>,
+	<If> => <>
 };
 
 Instructions: Box<Node> = {
@@ -137,6 +138,25 @@ Instructions: Box<Node> = {
 
 pub Body: Box<Node> = {
 	"{" <Instructions> "}" => <>
+};
+
+pub If: Box<Node> = {
+	"if" <expr:Expr> <body:Body> => Box::new(
+		Node::If(
+			expr,
+			body,
+			None,
+			None
+		)
+	),
+	"if" <expr:Expr> <then_body:Body> "else" <else_body:Body> => Box::new(
+			Node::If(
+				expr,
+				then_body,
+				Some(else_body),
+				None
+			)
+	)
 };
 
 // TODO: This should use a type enum instead

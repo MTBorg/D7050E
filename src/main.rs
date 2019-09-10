@@ -13,7 +13,8 @@ use parsing::{
     func_call_parser,
     func_dec_parser,
     let_parser,
-    body_parser
+    body_parser,
+    if_parser
 };
 
 fn main(){
@@ -29,7 +30,19 @@ fn main(){
     // n2.attach_right_most_child(*f1);
     // n1.attach_right_most_child(*n2);
     //
-    debug_print!(body_parser::parse("{ let a = 2; let b = 3;}"));
-
+   // debug_print!(body_parser::parse(" 
+    //     {
+    //         let a = 2 * b;
+    //         let b = 3;
+    //     } 
+    // "));
+    debug_print!(if_parser::parse("
+    if a + 2 {
+        let a = 2; 
+        if b {
+            let c = 3;
+        }
+    }"
+    ));
     // debug_print!(n1);
 }
