@@ -14,7 +14,8 @@ use parsing::{
     func_dec_parser,
     let_parser,
     body_parser,
-    if_parser
+    if_parser,
+    bool_expr_parser
 };
 
 fn main(){
@@ -36,13 +37,20 @@ fn main(){
     //         let b = 3;
     //     } 
     // "));
-    debug_print!(if_parser::parse("
-    if a + 2 {
-        let a = 2; 
-        if b {
-            let c = 3;
-        }
-    }"
-    ));
+    // debug_print!(if_parser::parse("
+    // if a + 2 {
+    //     let a = 2; 
+    //     if b {
+    //         let c = 3;
+    //     }
+    // }"
+    // ));
     // debug_print!(n1);
+    //
+    let a = true;
+    let b = true;
+    // if 2 == 3 == 4{
+
+    // }
+    debug_print!(bool_expr_parser::parse(""));
 }

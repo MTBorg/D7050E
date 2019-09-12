@@ -4,6 +4,7 @@ use std::str::FromStr;
 
 use crate::{
 	parsing::expr_parser::Opcode,
+	parsing::bool_expr_parser::BoolOpcode,
 	node::Node,
 	func::FuncDec,
 	func_param::FuncParam,
@@ -160,6 +161,38 @@ pub If: Box<Node> = {
 				None
 			)
 	)
+};
+
+Bool: bool = {
+	"true" => true,
+	"false" => false
+};
+
+pub BoolExpr: Box<Node> = {
+	BoolExpr BoolExprOp BoolFactor => Box::new(Node::BoolOp(<>)),
+	BoolFactor
+};
+
+BoolExprOp: BoolOpcode = {
+	"&&" => BoolOpcode::AND,
+	"||" => BoolOpcode::OR
+};
+
+BoolFactor: Box<Node> = {
+	BoolFactor BoolFactorOp BoolTerm => Box::new(Node::BoolOp(<>)),
+	BoolTerm
+};
+
+BoolFactorOp: BoolOpcode = {
+	"==" => BoolOpcode::EQ,
+	"!=" => BoolOpcode::NEQ,
+};
+
+pub BoolTerm: Box<Node> = {
+	Bool => Box::new(Node::Bool(<>)),
+	Var => Box::new(Node::Var(<>)),
+	Num => Box::new(Node::Number(<>)),
+	"(" <BoolExpr> ")",
 };
 
 // TODO: This should use a type enum instead

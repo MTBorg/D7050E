@@ -1,13 +1,16 @@
 use crate::parsing::expr_parser::Opcode;
+use crate::parsing::bool_expr_parser::BoolOpcode;
 
 #[derive(Debug)]
 pub enum Node{
     Number(i32),
+    Bool(bool),
     Var(String),
     Let(Box<Node>, Box<Node>, Option<Box<Node>>),
     FuncCall(String, Vec<String>, Option<Box<Node>>),
     Op(Box<Node>, Opcode, Box<Node>),
     If(Box<Node>, Box<Node>, Option<Box<Node>>, Option<Box<Node>>),
+    BoolOp(Box<Node>, BoolOpcode, Box<Node>),
     Empty
 }
 
