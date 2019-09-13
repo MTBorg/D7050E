@@ -81,4 +81,59 @@ mod tests{
         }
         ").is_ok());
     }
+
+    #[test]
+    pub fn test_if_parser_bool_expr_eq(){
+        assert!(parse("
+        if a == 2 {
+            let a = 2;
+        }
+        ").is_ok());
+    }
+
+    #[test]
+    pub fn test_if_parser_bool_expr_neq(){
+        assert!(parse("
+        if a != 2 {
+            let a = 2;
+        }
+        ").is_ok());
+    }
+
+    #[test]
+    pub fn test_if_parser_bool_expr_and(){
+        assert!(parse("
+        if a && 2 {
+            let a = 2;
+        }
+        ").is_ok());
+    }
+
+    #[test]
+    pub fn test_if_parser_bool_expr_or(){
+        assert!(parse("
+        if a || 2 {
+            let a = 2;
+        }
+        ").is_ok());
+    }
+
+    #[test]
+    pub fn test_if_parser_bool_expr_else(){
+        assert!(parse("
+        if a == 2 {
+            let a = 2;
+        }else{
+            let a = 3;
+        }
+        ").is_ok());
+    }
+
+    #[test]
+    pub fn test_if_parser_bool_expr_mult(){
+        assert!(parse("
+        if a * 5 == 2 {
+            let a = 2;
+        }").is_ok());
+    }
 }
