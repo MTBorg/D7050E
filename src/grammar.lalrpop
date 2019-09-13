@@ -145,7 +145,7 @@ pub Body: Box<Node> = {
 };
 
 pub If: Box<Node> = {
-	"if" <expr:Expr> <body:Body> => Box::new(
+	"if" <expr:BoolExpr> <body:Body> => Box::new(
 		Node::If(
 			expr,
 			body,
@@ -153,7 +153,7 @@ pub If: Box<Node> = {
 			None
 		)
 	),
-	"if" <expr:Expr> <then_body:Body> "else" <else_body:Body> => Box::new(
+	"if" <expr:BoolExpr> <then_body:Body> "else" <else_body:Body> => Box::new(
 			Node::If(
 				expr,
 				then_body,
