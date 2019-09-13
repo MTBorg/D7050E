@@ -133,4 +133,14 @@ mod tests{
     pub fn test_bool_expr_parser_chained_not_parenthesized(){
         assert!(!parse("a == 2 && b").is_ok());
     }
+
+    #[test]
+    pub fn test_bool_expr_parser_lefthand_expression(){
+        assert!(parse("a * 2 == 4").is_ok());
+    }
+
+    #[test]
+    pub fn test_bool_expr_parser_righthand_expression(){
+        assert!(parse("a == b * 2").is_ok());
+    }
 }
