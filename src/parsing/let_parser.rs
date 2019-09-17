@@ -19,11 +19,6 @@ mod tests{
     }
 
     #[test]
-    fn test_parser_let_no_type_float(){
-        assert!(parse("let a = 1.5;").is_ok());
-    }
-
-    #[test]
     fn test_parser_let_no_type_negative(){
         assert!(parse("let a = -11;").is_ok());
     }
@@ -39,23 +34,8 @@ mod tests{
     }
 
     #[test]
-    fn test_parser_let_type_f32(){
-        assert!(parse("let a: f32 = 2.0;").is_ok());
-    }
-
-    #[test]
     fn test_parser_let_missing_colon(){
         assert!(!parse("let a: = 7;").is_ok());
-    }
-
-    #[test]
-    fn test_parser_let_missing_value(){
-        assert!(!parse("let a: f32 = ;").is_ok());
-    }
-
-    #[test]
-    fn test_parser_let_missing_comma_and_value(){
-        assert!(!parse("let a f32 = ;").is_ok());
     }
 
     #[test]
