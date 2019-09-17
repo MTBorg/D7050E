@@ -55,6 +55,16 @@ mod tests{
     }
 
     #[test]
+    fn test_parse_parenthesized_addition() {
+        assert!(parse("(1 + 4)").is_ok());
+    }
+
+    #[test]
+    fn test_parse_nested_parenthesis() {
+        assert!(parse("(1 + (4 * 5))").is_ok());
+    }
+
+    #[test]
     fn test_parse_correct_expressions() {
         assert!(parse("1+2+3").is_ok());
         assert!(parse("1 * 3 + 2 / 1").is_ok());

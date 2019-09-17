@@ -169,31 +169,34 @@ Bool: bool = {
 };
 
 pub BoolExpr: Box<Node> = {
-	BoolExpr BoolExprOp BoolFactor => Box::new(Node::BoolOp(<>)),
-	BoolFactor
+	BoolExpr LogOp BoolFactor => Box::new(Node::BoolOp(<>)),
+	BoolFactor,
 };
 
-BoolExprOp: BoolOpcode = {
+LogOp: BoolOpcode = {
 	"&&" => BoolOpcode::AND,
 	"||" => BoolOpcode::OR
 };
 
 BoolFactor: Box<Node> = {
-	BoolFactor BoolFactorOp BoolTerm => Box::new(Node::BoolOp(<>)),
-	BoolTerm
+	Bool => Box::new(Node::Bool(<>)),
+	Var => Box::new(Node::Var(<>)),
+	RelExpr
 };
 
-BoolFactorOp: BoolOpcode = {
+RelOp: BoolOpcode = {
 	"==" => BoolOpcode::EQ,
 	"!=" => BoolOpcode::NEQ,
 };
 
-pub BoolTerm: Box<Node> = {
+RelExpr: Box<Node> = {
+	RelExprTerm RelOp RelExprTerm => Box::new(Node::BoolOp(<>)),
+}
+
+RelExprTerm: Box<Node> = {
 	Bool => Box::new(Node::Bool(<>)),
-	Var => Box::new(Node::Var(<>)),
-	Num => Box::new(Node::Number(<>)),
-	"(" <BoolExpr> ")",
-};
+	Expr,
+}
 
 // TODO: This should use a type enum instead
 Type: String = {

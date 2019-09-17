@@ -53,12 +53,12 @@ mod tests{
 
     #[test]
     pub fn test_bool_expr_parser_var_or_num(){
-        assert!(parse("a || 2").is_ok());
+        assert!(!parse("a || 2").is_ok());
     }
 
     #[test]
     pub fn test_bool_expr_parser_var_and_num(){
-        assert!(parse("a && 2").is_ok());
+        assert!(!parse("a && 2").is_ok());
     }
 
     #[test]
@@ -93,12 +93,12 @@ mod tests{
 
     #[test]
     pub fn test_bool_expr_parser_num_or_var(){
-        assert!(parse("2 || b").is_ok());
+        assert!(!parse("2 || b").is_ok());
     }
 
     #[test]
     pub fn test_bool_expr_parser_num_and_var(){
-        assert!(parse("2 && b").is_ok());
+        assert!(!parse("2 && b").is_ok());
     }
 
     #[test]
@@ -113,12 +113,12 @@ mod tests{
 
     #[test]
     pub fn test_bool_expr_parser_num_or_num(){
-        assert!(parse("2 || 2").is_ok());
+        assert!(!parse("2 || 2").is_ok());
     }
 
     #[test]
     pub fn test_bool_expr_parser_num_and_num(){
-        assert!(parse("2 && 2").is_ok());
+        assert!(!parse("2 && 2").is_ok());
     }
 
     #[test]
