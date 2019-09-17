@@ -66,6 +66,6 @@ mod tests{
 
     #[test]
     pub fn test_trailing_comma(){
-        assert!(!parse("foo(a, b,)").is_ok());
+        assert!(parse("foo(a, b,)").is_ok());
     }
 }
