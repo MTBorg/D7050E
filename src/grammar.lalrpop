@@ -17,7 +17,13 @@ Identifier: String = {
 
 pub Expr: Box<Node> = {
     Expr ExprOp Factor => Box::new(Node::Op(<>)),
+    Expr LogOp Factor => Box::new(Node::Op(<>)),
     Factor,
+};
+
+LogOp: Opcode = {
+	"&&" => Opcode::And,
+	"||" => Opcode::Or,
 };
 
 ExprOp: Opcode = { 
@@ -27,6 +33,7 @@ ExprOp: Opcode = {
 
 Factor: Box<Node> = {
     Factor FactorOp Term => Box::new(Node::Op(<>)),
+    Factor RelOp Term => Box::new(Node::Op(<>)),
     Term,
 };
 
@@ -35,9 +42,15 @@ FactorOp: Opcode = {
     "/" => Opcode::Div,
 };
 
+RelOp: Opcode = {
+	"==" => Opcode::Eq,
+	"!=" => Opcode::Neq,
+};
+
 Term: Box<Node> = {
     Num, 
 		Var,
+		Bool,
     "(" <Expr> ")"
 };
 
@@ -150,7 +163,7 @@ pub Body: Box<Node> = {
 };
 
 pub If: Box<Node> = {
-	"if" <expr:BoolExpr> <body:Body> => Box::new(
+	"if" <expr:Expr> <body:Body> => Box::new(
 		Node::If(
 			expr,
 			body,
@@ -158,7 +171,7 @@ pub If: Box<Node> = {
 			None
 		)
 	),
-	"if" <expr:BoolExpr> <then_body:Body> "else" <else_body:Body> => Box::new(
+	"if" <expr:Expr> <then_body:Body> "else" <else_body:Body> => Box::new(
 			Node::If(
 				expr,
 				then_body,
@@ -172,36 +185,6 @@ Bool: Box<Node> = {
 	"true" => Box::new(Node::Bool(true)),
 	"false" => Box::new(Node::Bool(false))
 };
-
-pub BoolExpr: Box<Node> = {
-	BoolExpr LogOp BoolFactor => Box::new(Node::BoolOp(<>)),
-	BoolFactor,
-};
-
-LogOp: BoolOpcode = {
-	"&&" => BoolOpcode::AND,
-	"||" => BoolOpcode::OR
-};
-
-BoolFactor: Box<Node> = {
-	Bool,
-	Var,
-	RelExpr
-};
-
-RelOp: BoolOpcode = {
-	"==" => BoolOpcode::EQ,
-	"!=" => BoolOpcode::NEQ,
-};
-
-RelExpr: Box<Node> = {
-	RelExprTerm RelOp RelExprTerm => Box::new(Node::BoolOp(<>)),
-}
-
-RelExprTerm: Box<Node> = {
-	Bool,
-	Expr,
-}
 
 // TODO: This should use a type enum instead
 Type: String = {

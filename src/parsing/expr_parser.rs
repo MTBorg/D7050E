@@ -4,7 +4,7 @@ use crate::node::Node;
 
 #[derive(Debug)]
 pub enum Opcode{
-    Mul, Div, Add, Sub
+    Mul, Div, Add, Sub, Eq, Neq, And, Or
 }
 
 pub fn parse(s: &str) -> Result<Box<Node>, ParseError>{

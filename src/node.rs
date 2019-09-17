@@ -10,7 +10,6 @@ pub enum Node{
     FuncCall(String, Vec<String>, Option<Box<Node>>),
     Op(Box<Node>, Opcode, Box<Node>),
     If(Box<Node>, Box<Node>, Option<Box<Node>>, Option<Box<Node>>),
-    BoolOp(Box<Node>, BoolOpcode, Box<Node>),
     Empty
 }
 
