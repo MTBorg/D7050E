@@ -103,7 +103,7 @@ mod tests{
     #[test]
     pub fn test_if_parser_bool_expr_and(){
         assert!(parse("
-        if a && 2 {
+        if a && b {
             let a = 2;
         }
         ").is_ok());
@@ -112,7 +112,7 @@ mod tests{
     #[test]
     pub fn test_if_parser_bool_expr_or(){
         assert!(parse("
-        if a || 2 {
+        if a || b {
             let a = 2;
         }
         ").is_ok());
