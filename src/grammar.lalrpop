@@ -198,21 +198,5 @@ pub BoolTerm: Box<Node> = {
 // TODO: This should use a type enum instead
 Type: String = {
 	"bool" => <>.to_string(), 
-	"char" => <>.to_string(), 
-	"i8" => <>.to_string(), 
-	"i16" => <>.to_string(), 
 	"i32" => <>.to_string(), 
-	"i64" => <>.to_string(), 
-	"isize" => <>.to_string(), 
-	"u8" => <>.to_string(), 
-	"u16" => <>.to_string(), 
-	"u32" => <>.to_string(), 
-	"u64" => <>.to_string(), 
-	"usize" => <>.to_string(), 
-	"f32" => <>.to_string(), 
-	"f64" => <>.to_string(), 
-	"array" => <>.to_string(), 
-	"slice" => <>.to_string(), 
-	"str" => <>.to_string(), 
-	"tuple" => <>.to_string(), 
 }
