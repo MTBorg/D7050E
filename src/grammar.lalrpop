@@ -121,8 +121,8 @@ pub Let: Box<Node> = {
 };
 
 Instruction: Box<Node> = {
-	<Let> => <>,
-	<If> => <>
+	Let,
+	If
 };
 
 Instructions: Box<Node> = {
