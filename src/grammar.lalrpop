@@ -36,16 +36,18 @@ FactorOp: Opcode = {
 };
 
 Term: Box<Node> = {
-    Num => Box::new(Node::Number(<>)), 
-		Var => Box::new(Node::Var(<>)),
+    Num, 
+		Var,
     "(" <Expr> ")"
 };
 
-Num: i32 = {
-    r"-?[0-9]+" => i32::from_str(<>).unwrap()
+Num: Box<Node> = {
+    r"-?[0-9]+" => Box::new(Node::Number(i32::from_str(<>).unwrap()))
 };
 
-Var = Identifier;
+Var: Box<Node> = {
+	Identifier => Box::new(Node::Var(<>))
+};
 
 pub FuncCall: Box<Node> = {
 	<func_name:Identifier> "(" <args:FuncArgs> ")" ";"? =>	
@@ -71,7 +73,10 @@ FuncArgs: Vec<String> = {
 
 FuncArg: String = {
 	Identifier,
-	Num => <>.to_string()
+	Num => match *<> {
+		Node::Number(n) => n.to_string(),
+		_ => panic!("Error: Could not parse function arg number")
+	}
 };
 	
 FuncName = Identifier;
@@ -163,9 +168,9 @@ pub If: Box<Node> = {
 	)
 };
 
-Bool: bool = {
-	"true" => true,
-	"false" => false
+Bool: Box<Node> = {
+	"true" => Box::new(Node::Bool(true)),
+	"false" => Box::new(Node::Bool(false))
 };
 
 pub BoolExpr: Box<Node> = {
@@ -179,8 +184,8 @@ LogOp: BoolOpcode = {
 };
 
 BoolFactor: Box<Node> = {
-	Bool => Box::new(Node::Bool(<>)),
-	Var => Box::new(Node::Var(<>)),
+	Bool,
+	Var,
 	RelExpr
 };
 
@@ -194,7 +199,7 @@ RelExpr: Box<Node> = {
 }
 
 RelExprTerm: Box<Node> = {
-	Bool => Box::new(Node::Bool(<>)),
+	Bool,
 	Expr,
 }
 
