@@ -110,7 +110,7 @@ pub FuncDec: FuncDec = {
 };
 
 pub Let: Box<Node> = {
-	"let" <id:Identifier> <_type:(":" <Type>)?> "=" <expr:Expr> => 
+	"let" <id:Identifier> <_type:(":" <Type>)?> "=" <expr:Expr> ";"=> 
 		Box::new(
 			Node::Let(
 				Box::new(Node::Var(id)),
@@ -121,7 +121,7 @@ pub Let: Box<Node> = {
 };
 
 Instruction: Box<Node> = {
-	<Let> ";" => <>,
+	<Let> => <>,
 	<If> => <>
 };
 
