@@ -47,4 +47,14 @@ mod tests{
     fn test_parser_let_missing_semi_colong(){
         assert!(!parse("let a = 2").is_ok());
     }
+
+    #[test]
+    fn test_parser_let_assign_variable_notype(){
+        assert!(parse("let a = b;").is_ok());
+    }
+
+    #[test]
+    fn test_parser_let_assign_variable_typed(){
+        assert!(parse("let a: i32 = b;").is_ok());
+    }
 }
