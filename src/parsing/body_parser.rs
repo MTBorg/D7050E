@@ -38,7 +38,7 @@ mod tests{
             {
                 let a = 3 + 1;
                 let b = a - 2;
-                let c = 1000 -240;
+                let c = 1000 - 240;
             }
         ").is_ok());
     }
@@ -47,7 +47,7 @@ mod tests{
     pub fn test_body_parser_multiple_statements_one_line(){
         assert!(parse("
             {
-                let a = 3 + 1; let b = a - 2; let c = 1000 -240;
+                let a = 3 + 1; let b = a - 2; let c = 1000 - 240;
             }
         ").is_ok());
     }
