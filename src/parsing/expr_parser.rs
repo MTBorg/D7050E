@@ -2,7 +2,7 @@ use super::ParseError;
 use crate::node::Node;
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Opcode{
     Mul, Div, Add, Sub, Eq, Neq, And, Or
 }
@@ -17,7 +17,11 @@ pub fn parse(s: &str) -> Result<Box<Node>, ParseError>{
 
 #[cfg(test)]
 mod tests{
-    use super::parse;
+    use super::{
+        parse,
+        Opcode,
+        Node
+    };
 
     #[test]
     fn test_parse_number_no_parens() {
@@ -88,5 +92,69 @@ mod tests{
         assert!(!parse("+1 - 2").is_ok()); // Prefixed operator
         assert!(!parse("1++2").is_ok()); // Double operator
         assert!(!parse("1 + ! 2").is_ok()); // Unknown operator
+    }
+
+    #[test]
+    fn test_precedence_1(){
+        assert_eq!(
+            parse("1+2*3").unwrap(), 
+            Box::new(Node::Op(
+                Box::new(Node::Number(1)),
+                Opcode::Add,
+                Box::new(Node::Op(
+                    Box::new(Node::Number(2)),
+                    Opcode::Mul,
+                    Box::new(Node::Number(3))
+                ))
+            ))
+        )
+    }
+
+    #[test]
+    fn test_precedence_2(){
+        assert_eq!(
+            parse("(1+2)*3").unwrap(), 
+            Box::new(Node::Op(
+                Box::new(Node::Op(
+                    Box::new(Node::Number(1)),
+                    Opcode::Add,
+                    Box::new(Node::Number(2))
+                )),
+                Opcode::Mul,
+                Box::new(Node::Number(3))
+            ))
+        )
+    }
+
+    #[test]
+    fn test_bool_precedence_1(){
+        assert_eq!(
+            parse("a && b == c").unwrap(), 
+            Box::new(Node::Op(
+                Box::new(Node::Var("a".to_string())),
+                Opcode::And,
+                Box::new(Node::Op(
+                    Box::new(Node::Var("b".to_string())),
+                    Opcode::Eq,
+                    Box::new(Node::Var("c".to_string()))
+                ))
+            ))
+        )
+    }
+
+    #[test]
+    fn test_bool_precedence_2(){
+        assert_eq!(
+            parse("(a && b) == c").unwrap(), 
+            Box::new(Node::Op(
+                Box::new(Node::Op(
+                    Box::new(Node::Var("a".to_string())),
+                    Opcode::And,
+                    Box::new(Node::Var("b".to_string()))
+                )),
+                Opcode::Eq,
+                Box::new(Node::Var("c".to_string()))
+            ))
+        )
     }
 }
