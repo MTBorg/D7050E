@@ -12,7 +12,10 @@ pub fn parse(s: &str) -> Result<Box<Node>, ParseError>{
 
 #[cfg(test)]
 mod tests{
-    use super::parse;
+    use super::{
+        parse,
+        Node
+    };
 
     #[test]
     pub fn test_no_arguments(){
@@ -67,5 +70,33 @@ mod tests{
     #[test]
     pub fn test_trailing_comma(){
         assert!(parse("foo(a, b,)").is_ok());
+    }
+
+    #[test]
+    pub fn test_tree_no_args(){
+        assert_eq!(
+            *parse("foo()").unwrap(),
+            Node::FuncCall(
+                "foo".to_string(),
+                vec![],
+                None
+            )
+        )
+    }
+
+    #[test]
+    pub fn test_tree_multiple_args(){
+        assert_eq!(
+            *parse("foo(a, b, c)").unwrap(),
+            Node::FuncCall(
+                "foo".to_string(),
+                vec![
+                    "a".to_string(),
+                    "b".to_string(),
+                    "c".to_string()
+                ],
+                None
+            )
+        )
     }
 }
