@@ -6,7 +6,6 @@ pub mod func_dec_parser;
 pub mod let_parser;
 pub mod body_parser;
 pub mod if_parser;
-pub mod bool_expr_parser;
 
 #[derive(Debug)]
 pub struct ParseError{

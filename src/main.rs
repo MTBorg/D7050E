@@ -15,7 +15,6 @@ use parsing::{
     let_parser,
     body_parser,
     if_parser,
-    bool_expr_parser
 };
 
 fn main(){

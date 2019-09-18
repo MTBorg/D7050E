@@ -4,7 +4,6 @@ use std::str::FromStr;
 
 use crate::{
 	parsing::expr_parser::Opcode,
-	parsing::bool_expr_parser::BoolOpcode,
 	node::Node,
 	func::FuncDec,
 	func_param::FuncParam,

@@ -1,5 +1,4 @@
 use crate::parsing::expr_parser::Opcode;
-use crate::parsing::bool_expr_parser::BoolOpcode;
 
 #[derive(Debug)]
 pub enum Node{
