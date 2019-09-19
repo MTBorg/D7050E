@@ -116,7 +116,7 @@ FuncParams: Vec<FuncParam> = {
 };
 
 pub FuncDec: FuncDec = {
-	"fn" <name:FuncName> "(" <params:FuncParams> ")" <ret_type:("->" <Type>)?> "{}" => FuncDec{
+	"fn" <name:FuncName> "(" <params:FuncParams> ")" <ret_type:("->" <Type>)?> Body => FuncDec{
 		name: name,
 		params: params,
 		ret_type: match ret_type{
