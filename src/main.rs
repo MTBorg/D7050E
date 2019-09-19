@@ -5,6 +5,7 @@ mod node;
 mod parsing;
 mod func;
 mod func_param;
+mod interpreter;
 
 // TODO: Remove this eventually
 #[allow(unused_imports)]
@@ -16,6 +17,8 @@ use parsing::{
     body_parser,
     if_parser,
 };
+
+use interpreter::eval;
 
 fn main(){
     // debug_print!(expr_parser::parse("2"));
@@ -51,5 +54,9 @@ fn main(){
     // if 2 == 3 == 4{
 
     // }
-    debug_print!(bool_expr_parser::parse(""));
+    // debug_print!(bool_expr_parser::parse(""));
+    debug_print!(eval(*expr_parser::parse("5 - 3").unwrap()));
+    debug_print!(eval(*expr_parser::parse("5 + 10").unwrap()));
+    debug_print!(eval(*expr_parser::parse("5 * 10").unwrap()));
+    debug_print!(eval(*expr_parser::parse("5 / 10").unwrap()));
 }

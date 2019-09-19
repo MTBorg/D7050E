@@ -26,3 +26,47 @@ impl Node{
         };
     }
 }
+
+impl std::ops::Add<Node> for Node{
+    type Output = Node;
+
+    fn add(self, other: Node) -> Node {
+        match (self, other){
+            (Node::Number(n1), Node::Number(n2)) => Node::Number(n1 + n2),
+            _ => panic!("Type error")
+        }
+    }
+}
+
+impl std::ops::Sub<Node> for Node{
+    type Output = Node;
+
+    fn sub(self, other: Node) -> Node {
+        match (self, other){
+            (Node::Number(n1), Node::Number(n2)) => Node::Number(n1 - n2),
+            _ => panic!("Type error")
+        }
+    }
+}
+
+impl std::ops::Mul<Node> for Node{
+    type Output = Node;
+
+    fn mul(self, other: Node) -> Node {
+        match (self, other){
+            (Node::Number(n1), Node::Number(n2)) => Node::Number(n1 * n2),
+            _ => panic!("Type error")
+        }
+    }
+}
+
+impl std::ops::Div<Node> for Node{
+    type Output = Node;
+
+    fn div(self, other: Node) -> Node {
+        match (self, other){
+            (Node::Number(n1), Node::Number(n2)) => Node::Number(n1 / n2),
+            _ => panic!("Type error")
+        }
+    }
+}
