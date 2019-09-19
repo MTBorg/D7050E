@@ -16,6 +16,7 @@ use parsing::{
     let_parser,
     body_parser,
     if_parser,
+    file_parser,
 };
 
 use interpreter::eval;

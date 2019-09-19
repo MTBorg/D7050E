@@ -1,6 +1,9 @@
 grammar;
 
-use std::str::FromStr;
+use std::{
+	str::FromStr,
+	collections::HashMap
+};
 
 use crate::{
 	parsing::expr_parser::Opcode,
@@ -9,6 +12,17 @@ use crate::{
 	func_param::FuncParam,
 };
 
+pub File: HashMap<String, String> = {
+	<func_decs:FuncDec+> => {
+		let mut hmap = HashMap::new();
+		for func_dec in func_decs.iter(){
+			//TODO: Don't use function name for value
+			hmap.insert(func_dec.name.to_string(), func_dec.name.to_string());
+		}
+		hmap
+	}
+};
+	
 
 Identifier: String = {
 	r"_*[a-z]+\w*" => <>.to_string()
