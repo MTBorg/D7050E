@@ -12,12 +12,11 @@ use crate::{
 	func_param::FuncParam,
 };
 
-pub File: HashMap<String, String> = {
-	<func_decs:FuncDec+> => {
+pub File: HashMap<String, FuncDec> = {
+	<mut func_decs:FuncDec+> => {
 		let mut hmap = HashMap::new();
-		for func_dec in func_decs.iter(){
-			//TODO: Don't use function name for value
-			hmap.insert(func_dec.name.to_string(), func_dec.name.to_string());
+		for func_dec in func_decs.drain(..){
+			hmap.insert(func_dec.name.to_string(), func_dec);
 		}
 		hmap
 	}
@@ -130,13 +129,14 @@ FuncParams: Vec<FuncParam> = {
 };
 
 pub FuncDec: FuncDec = {
-	"fn" <name:FuncName> "(" <params:FuncParams> ")" <ret_type:("->" <Type>)?> Body => FuncDec{
+	"fn" <name:FuncName> "(" <params:FuncParams> ")" <ret_type:("->" <Type>)?> <body_start:Body> => FuncDec{
 		name: name,
 		params: params,
 		ret_type: match ret_type{
 			Some(ret_type) => ret_type,
 			None => "".to_string()
-		}
+		},
+		body_start: *body_start
 	}
 };
 

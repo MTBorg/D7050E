@@ -1,6 +1,6 @@
 use crate::parsing::expr_parser::Opcode;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Node{
     Number(i32),
     Bool(bool),

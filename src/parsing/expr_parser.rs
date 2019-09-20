@@ -2,7 +2,7 @@ use super::ParseError;
 use crate::node::Node;
 
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Opcode{
     Mul, Div, Add, Sub, Eq, Neq, And, Or
 }

@@ -7,6 +7,8 @@ mod func;
 mod func_param;
 mod interpreter;
 
+use std::collections::HashMap;
+
 // TODO: Remove this eventually
 #[allow(unused_imports)]
 use parsing::{
@@ -20,6 +22,14 @@ use parsing::{
 };
 
 use interpreter::eval;
+use func::FuncDec;
+
+fn run_program(funcs: HashMap<String, FuncDec>){
+    match funcs.get("main") {
+        Some(main) => main.execute(),
+        None => panic!("No main function found")
+    }
+}
 
 fn main(){
     // debug_print!(expr_parser::parse("2"));
@@ -56,8 +66,19 @@ fn main(){
 
     // }
     // debug_print!(bool_expr_parser::parse(""));
-    debug_print!(eval(*expr_parser::parse("5 - 3").unwrap()));
-    debug_print!(eval(*expr_parser::parse("5 + 10").unwrap()));
-    debug_print!(eval(*expr_parser::parse("5 * 10").unwrap()));
-    debug_print!(eval(*expr_parser::parse("5 / 10").unwrap()));
+    // debug_print!(eval(*expr_parser::parse("5 - 3").unwrap()));
+    // debug_print!(eval(*expr_parser::parse("5 + 10").unwrap()));
+    // debug_print!(eval(*expr_parser::parse("5 * 10").unwrap()));
+    // debug_print!(eval(*expr_parser::parse("5 / 10").unwrap()));
+    let input = "
+        fn foo(){
+
+        }
+
+        fn main(){
+            let a = 2;
+        }
+    ";
+    let funcs = file_parser::parse(input).unwrap();
+    run_program(funcs);
 }
