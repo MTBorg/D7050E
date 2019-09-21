@@ -6,6 +6,7 @@ mod parsing;
 mod func;
 mod func_param;
 mod interpreter;
+mod types;
 
 use std::collections::HashMap;
 
@@ -24,9 +25,9 @@ use parsing::{
 use interpreter::eval;
 use func::FuncDec;
 
-fn run_program(funcs: HashMap<String, FuncDec>){
+fn run_program(funcs: &HashMap<String, FuncDec>){
     match funcs.get("main") {
-        Some(main) => main.execute(),
+        Some(main) => main.execute(funcs),
         None => panic!("No main function found")
     }
 }
@@ -70,15 +71,21 @@ fn main(){
     // debug_print!(eval(*expr_parser::parse("5 + 10").unwrap()));
     // debug_print!(eval(*expr_parser::parse("5 * 10").unwrap()));
     // debug_print!(eval(*expr_parser::parse("5 / 10").unwrap()));
-    let input = "
-        fn foo(){
+     let input = "
+         fn foo(){
 
-        }
+         }
 
-        fn main(){
-            let a = 2;
-        }
-    ";
+         fn main(){
+             foo(a);
+         }
+     ";
     let funcs = file_parser::parse(input).unwrap();
-    run_program(funcs);
+    run_program(&funcs);
+    //
+    //
+    // debug_print!(func_call_parser::parse("
+    //     foo();
+    // "));
+
 }

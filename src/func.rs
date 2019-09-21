@@ -1,7 +1,10 @@
+use std::collections::HashMap;
+
 use crate::{
     func_param::FuncParam,
     node::Node,
-    interpreter::eval
+    interpreter::eval,
+    types::Context,
 };
 
 #[derive(Debug)]
@@ -13,9 +16,10 @@ pub struct FuncDec{
 }
 
 impl FuncDec {
-    pub fn execute(&self){
+    pub fn execute(&self, funcs: &HashMap<String, FuncDec>){
         println!("Executing {}", self.name);
-
-        eval(&self.body_start);
+            
+        let mut c: Context = Context::new();
+        eval(&self.body_start, &mut c, &funcs);
     }
 }
