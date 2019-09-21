@@ -38,7 +38,10 @@ pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, FuncDec>
         Node::FuncCall(func, args, next_instr) => {
             context.push(create_scope((*args).clone()));
             match funcs.get(func){
-                Some(func) => { func.execute(funcs); } ,
+                Some(func) => { 
+                    func.execute(funcs);
+                    validate_arguments(&args, func);
+                } ,
                 None => panic!("No function {}", func)
             }
             match next_instr {
@@ -48,6 +51,21 @@ pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, FuncDec>
         },
         Node::Empty => Node::Empty,
         _ => panic!("Unknown nodetype")
+    }
+}
+
+fn validate_arguments(args: &Vec<String>, func: &FuncDec){
+    if args.len() < func.params.len(){
+        let mut error_msg = "Missing parameter ".to_string() +
+            &func.params[args.len()].name;
+        for param in args.len()+1..func.params.len(){
+            error_msg.push_str(", ");
+            error_msg += &func.params[param].name;
+        }
+
+        error_msg.push_str(" to function ");
+        error_msg += &func.name;
+        panic!(error_msg);
     }
 }
 
