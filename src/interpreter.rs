@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     node::Node,
     parsing::expr_parser::Opcode,
-    types::Context,
+    context::Context,
     func::FuncDec,
 };
 

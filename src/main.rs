@@ -6,7 +6,7 @@ mod parsing;
 mod func;
 mod func_param;
 mod interpreter;
-mod types;
+mod context;
 mod scope;
 
 use std::collections::HashMap;
