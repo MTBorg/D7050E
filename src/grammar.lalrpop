@@ -154,7 +154,8 @@ pub Let: Box<Node> = {
 Instruction: Box<Node> = {
 	Let,
 	If,
-	FuncCall
+	FuncCall,
+	Debug_Context
 };
 
 Instructions: Box<Node> = {
@@ -205,3 +206,7 @@ Type: String = {
 	"bool" => <>.to_string(), 
 	"i32" => <>.to_string(), 
 }
+
+Debug_Context: Box<Node> = {
+	"$DEBUG_CONTEXT" => Box::new(Node::DebugContext(None))
+};

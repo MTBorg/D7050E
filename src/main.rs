@@ -73,8 +73,8 @@ fn main(){
     // debug_print!(eval(*expr_parser::parse("5 * 10").unwrap()));
     // debug_print!(eval(*expr_parser::parse("5 / 10").unwrap()));
      let input = "
-         fn foo(){
-
+         fn foo(a: i32){
+             $DEBUG_CONTEXT
          }
 
          fn main(){

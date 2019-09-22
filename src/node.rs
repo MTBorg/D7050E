@@ -9,6 +9,7 @@ pub enum Node{
     FuncCall(String, Vec<String>, Option<Box<Node>>),
     Op(Box<Node>, Opcode, Box<Node>),
     If(Box<Node>, Box<Node>, Option<Box<Node>>, Option<Box<Node>>),
+    DebugContext(Option<Box<Node>>),
     Empty
 }
 
@@ -22,6 +23,7 @@ impl Node{
             Node::Let(_,_, ref mut next_op) |
             Node::FuncCall(_,_, ref mut next_op) => *next_op = Some(Box::new(child)),
             Node::If(_,_,_, ref mut next_op) => *next_op = Some(Box::new(child)),
+            Node::DebugContext(ref mut next_op) => *next_op = Some(Box::new(child)),
             _ => panic!("Failed to attach right most child (unknown nodetype)!")
         };
     }

@@ -35,6 +35,13 @@ pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, FuncDec>
                 }
             }
         },
+        Node::DebugContext(next_instr) => { 
+            debug_print!(context);
+            match next_instr{
+                Some(instr) => eval(instr, context, funcs),
+                None => Node::Empty
+            }
+        },
         Node::FuncCall(func, args, next_instr) => {
             match funcs.get(func){
                 Some(func) => { func.execute(&args, funcs); },
