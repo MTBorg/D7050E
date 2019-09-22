@@ -1,9 +1,11 @@
 use std::collections::HashMap;
 
-use crate::node::Node;
-use crate::parsing::expr_parser::Opcode;
-use crate::types::{ Context };
-use crate::func::FuncDec;
+use crate::{
+    node::Node,
+    parsing::expr_parser::Opcode,
+    types::Context,
+    func::FuncDec,
+};
 
 pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, FuncDec>) -> Node {
     match node{

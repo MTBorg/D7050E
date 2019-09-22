@@ -20,10 +20,10 @@ impl Node{
     /// * `child` - The child node to attach.
     pub fn attach_right_most_child(&mut self, child: Node){
         match *self{
-            Node::Let(_,_, ref mut next_op) |
-            Node::FuncCall(_,_, ref mut next_op) => *next_op = Some(Box::new(child)),
-            Node::If(_,_,_, ref mut next_op) => *next_op = Some(Box::new(child)),
-            Node::DebugContext(ref mut next_op) => *next_op = Some(Box::new(child)),
+            Node::Let(_,_, ref mut right_most) |
+            Node::FuncCall(_,_, ref mut right_most) |
+            Node::If(_,_,_, ref mut right_most) |
+            Node::DebugContext(ref mut right_most) => *right_most = Some(Box::new(child)),
             _ => panic!("Failed to attach right most child (unknown nodetype)!")
         };
     }
