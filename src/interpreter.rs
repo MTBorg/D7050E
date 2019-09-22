@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::node::Node;
 use crate::parsing::expr_parser::Opcode;
-use crate::types::{ Context, Scope };
+use crate::types::{ Context };
 use crate::func::FuncDec;
 
 pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, FuncDec>) -> Node {
@@ -36,12 +36,8 @@ pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, FuncDec>
             }
         },
         Node::FuncCall(func, args, next_instr) => {
-            context.push(create_scope((*args).clone()));
             match funcs.get(func){
-                Some(func) => { 
-                    func.execute(funcs);
-                    validate_arguments(&args, func);
-                } ,
+                Some(func) => { func.execute(&args, funcs); },
                 None => panic!("No function {}", func)
             }
             match next_instr {
@@ -54,30 +50,4 @@ pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, FuncDec>
     }
 }
 
-fn validate_arguments(args: &Vec<String>, func: &FuncDec){
-    if args.len() < func.params.len(){
-        let mut error_msg = "Missing parameter ".to_string() +
-            &func.params[args.len()].name;
-        for param in args.len()+1..func.params.len(){
-            error_msg.push_str(", ");
-            error_msg += &func.params[param].name;
-        }
 
-        error_msg.push_str(" to function ");
-        error_msg += &func.name;
-        panic!(error_msg);
-    }
-}
-
-fn create_scope(mut args: Vec<String>) -> Scope{
-    let mut scope = HashMap::new();
-    scope.reserve(args.len());
-    for arg in args.drain(..){
-        if scope.contains_key(&arg){
-            panic!("Duplicate argument");
-        }
-        //TODO: Don't use arg arg
-        scope.insert(arg.clone(), arg);
-    }
-    scope
-}

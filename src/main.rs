@@ -7,6 +7,7 @@ mod func;
 mod func_param;
 mod interpreter;
 mod types;
+mod scope;
 
 use std::collections::HashMap;
 
@@ -27,7 +28,7 @@ use func::FuncDec;
 
 fn run_program(funcs: &HashMap<String, FuncDec>){
     match funcs.get("main") {
-        Some(main) => main.execute(funcs),
+        Some(main) => main.execute(&vec!(), funcs),
         None => panic!("No main function found")
     }
 }

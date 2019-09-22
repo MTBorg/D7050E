@@ -1,4 +1,3 @@
-use std::collections::HashMap;
+use crate::scope::Scope;
 
 pub type Context = Vec<Scope>;
-pub type Scope = HashMap<String, String>;
