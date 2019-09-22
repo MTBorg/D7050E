@@ -39,6 +39,8 @@ impl FuncDec {
             error_msg.push_str(" to function ");
             error_msg += &self.name;
             panic!(error_msg);
-				 }
+        } else if args.len() > self.params.len(){
+            panic!("Unexpected argument");
+        }
     }
 }
