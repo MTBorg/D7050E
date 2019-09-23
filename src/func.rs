@@ -5,7 +5,8 @@ use crate::{
     node::Node,
     interpreter::eval,
     context::Context,
-    scope::Scope
+    scope::Scope,
+    variable::Variable
 };
 
 #[derive(Debug)]
@@ -17,17 +18,28 @@ pub struct FuncDec{
 }
 
 impl FuncDec {
-    pub fn execute(&self, args: &Vec<String>, funcs: &HashMap<String, FuncDec>){
+    pub fn execute(&self, args: &Vec<Node>, funcs: &HashMap<String, FuncDec>){
         println!("Executing {}", self.name);
             
         self.validate_arguments(args);
         let mut context: Context = Context::new();
-        context.push(Scope::new((*args).clone()));
+
+        let mut _args: Vec<Variable> = vec!();
+        for pair in (*args).iter().zip(self.params.iter()){
+            let (node, param) = pair;
+            let val = eval(node, &mut context, funcs).to_value();
+            match val{
+                Ok(val) => {_args.push(Variable{name: param.name.clone(), value: val});},
+                Err(e) => {panic!("aiwuhdiauwhd");}
+            };
+        }
+        
+        context.push(Scope::new(_args));
 
         eval(&self.body_start, &mut context, &funcs);
     }
 
-    fn validate_arguments(&self, args: &Vec<String>){
+    fn validate_arguments(&self, args: &Vec<Node>){
         if args.len() < self.params.len(){
             let mut error_msg = "Missing parameter ".to_string() +
                 &self.params[args.len()].name;

@@ -1,4 +1,7 @@
-use crate::parsing::expr_parser::Opcode;
+use crate::{
+    parsing::expr_parser::Opcode,
+    value::Value
+};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Node{
@@ -6,7 +9,7 @@ pub enum Node{
     Bool(bool),
     Var(String),
     Let(Box<Node>, Box<Node>, Option<Box<Node>>),
-    FuncCall(String, Vec<String>, Option<Box<Node>>),
+    FuncCall(String, Vec<Node>, Option<Box<Node>>),
     Op(Box<Node>, Opcode, Box<Node>),
     If(Box<Node>, Box<Node>, Option<Box<Node>>, Option<Box<Node>>),
     DebugContext(Option<Box<Node>>),
@@ -26,6 +29,14 @@ impl Node{
             Node::DebugContext(ref mut right_most) => *right_most = Some(Box::new(child)),
             _ => panic!("Failed to attach right most child (unknown nodetype)!")
         };
+    }
+
+    pub fn to_value(&self) -> Result<Value, &'static str> {
+        match self {
+            Node::Bool(b) => Ok(Value::Bool(*b)),
+            Node::Number(n) => Ok(Value::Int(*n)),
+            _ => Err("Cannot convert node to value")
+        }
     }
 }
 

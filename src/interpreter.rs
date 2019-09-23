@@ -46,7 +46,7 @@ pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, FuncDec>
         },
         Node::FuncCall(func, args, next_instr) => {
             match funcs.get(func){
-                Some(func) => { func.execute(&args, funcs); },
+                Some(func) => { func.execute(args, funcs); },
                 None => panic!("No function {}", func)
             }
             match next_instr {

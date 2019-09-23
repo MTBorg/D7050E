@@ -85,7 +85,7 @@ pub FuncCall: Box<Node> = {
 		)
 };
 
-FuncArgs: Vec<String> = {
+FuncArgs: Vec<Node> = {
 	<args:(<FuncArg> ",")*> <arg:FuncArg?> => match arg{
 		Some(arg) => {
 			let mut args = args;
@@ -96,12 +96,8 @@ FuncArgs: Vec<String> = {
 	}
 };
 
-FuncArg: String = {
-	Identifier,
-	Num => match *<> {
-		Node::Number(n) => n.to_string(),
-		_ => panic!("Error: Could not parse function arg number")
-	}
+FuncArg: Node = {
+	Expr => *<>
 };
 	
 FuncName = Identifier;

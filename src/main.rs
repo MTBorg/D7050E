@@ -8,6 +8,8 @@ mod func_param;
 mod interpreter;
 mod context;
 mod scope;
+mod value;
+mod variable;
 
 use std::collections::HashMap;
 
@@ -39,7 +41,7 @@ fn main(){
          }
 
          fn main(){
-             foo(a);
+             foo(2 == 3);
          }
      ";
     let funcs = file_parser::parse(input).unwrap();

@@ -1,21 +1,22 @@
 use std::collections::HashMap;
+use crate::variable::Variable;
 
 #[derive(Debug)]
 pub struct Scope{
-    vars: HashMap<String, String>
+    vars: HashMap<String, Variable>
 }
 
 impl Scope{
-    pub fn new(mut args: Vec<String>) -> Scope{
-        let mut vars = HashMap::new();
-        vars.reserve(args.len());
-        for arg in args.drain(..){
-            if vars.contains_key(&arg){
+    pub fn new(mut vars: Vec<Variable>) -> Scope{
+        let mut map = HashMap::new();
+        map.reserve(vars.len());
+        for var in vars.drain(..){
+            if map.contains_key(&var.name){
                 panic!("Duplicate argument");
             }
             //TODO: Don't use arg arg
-            vars.insert(arg.clone(), arg);
+            map.insert(var.name.clone(), var);
         }
-        Scope{ vars: vars }
+        Scope{ vars: map }
     }
 }
