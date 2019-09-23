@@ -31,18 +31,20 @@ pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, FuncDec>
         },
         Node::If(expr, then_body, else_body, next_instr) => {
             if eval(expr, context, funcs) == Node::Bool(true) {
-                eval(then_body, context, funcs)
+                eval(then_body, context, funcs);
             } else {
                 match else_body {
                     Some(body) => {
-                        eval(body, context, funcs)
+                        return eval(body, context, funcs);
                     },
-                    None => match next_instr {
-                        Some(instr) => eval(instr, context, funcs),
-                        None => eval(&Node::Empty, context, funcs)
-                    }
-                }
+                    None => ()
+                };
             }
+            match next_instr {
+                Some(instr) => eval(instr, context, funcs),
+                None => eval(&Node::Empty, context, funcs)
+            }
+
         },
         Node::DebugContext(next_instr) => { 
             debug_print!(context);
