@@ -29,7 +29,7 @@ impl FuncDec {
             let val = eval(node, context, funcs).to_value();
             match val{
                 Ok(val) => {_args.push(Variable{name: param.name.clone(), value: val});},
-                Err(e) => {panic!("aiwuhdiauwhd");}
+                Err(e) => {panic!(e);}
             };
         }
         

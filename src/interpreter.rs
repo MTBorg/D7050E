@@ -9,6 +9,16 @@ use crate::{
     scope::Scope
 };
 
+
+macro_rules! eval_next_instr {
+    ($next_instr:expr, $context:expr, $funcs:expr) => {
+        match $next_instr {
+            Some(instr) => eval(instr, $context, $funcs),
+            None => Node::Empty
+        }
+    }
+}
+
 pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, FuncDec>) -> Node {
     match node{
         Node::Var(var_name) => match context.get_variable(var_name.to_string()){
@@ -43,39 +53,26 @@ pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, FuncDec>
                 };
             }
             context.pop();
-            match next_instr {
-                Some(instr) => eval(instr, context, funcs),
-                None => eval(&Node::Empty, context, funcs)
-            }
+            eval_next_instr!(next_instr, context, funcs)
 
         },
         Node::DebugContext(next_instr) => { 
             debug_print!(context);
-            match next_instr{
-                Some(instr) => eval(instr, context, funcs),
-                None => Node::Empty
-            }
+            eval_next_instr!(next_instr, context, funcs)
         },
         Node::FuncCall(func, args, next_instr) => {
             match funcs.get(func){
                 Some(func) => { func.execute(args, funcs, context); },
                 None => panic!("No function {}", func)
             }
-            match next_instr {
-                Some(instr) => eval(instr, context, funcs),
-                None => Node::Empty
-            }
+            eval_next_instr!(next_instr, context, funcs)
         },
         Node::Let(id, expr, next_instr) => {
             let val = eval(expr, context, funcs).to_value().unwrap();
             context.insert_variable(id.to_string(), val);
-            match next_instr {
-                Some(instr) => eval(instr, context, funcs),
-                None => Node::Empty
-            }
+            eval_next_instr!(next_instr, context, funcs)
         },
         Node::Empty => Node::Empty,
-        _ => panic!("Unknown nodetype")
     }
 }
 

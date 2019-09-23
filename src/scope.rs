@@ -14,7 +14,6 @@ impl From<Vec<Variable>> for Scope{
             if map.contains_key(&var.name){
                 panic!("Duplicate argument");
             }
-            //TODO: Don't use arg arg
             map.insert(var.name.clone(), var);
         }
         Scope{ vars: map }
