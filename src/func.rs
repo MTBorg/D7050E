@@ -18,22 +18,22 @@ pub struct FuncDec{
 }
 
 impl FuncDec {
-    pub fn execute(&self, args: &Vec<Node>, funcs: &HashMap<String, FuncDec>){
+    pub fn execute(&self, args: &Vec<Node>, funcs: &HashMap<String, FuncDec>, context: &mut Context){
         println!("Executing {}", self.name);
             
         self.validate_arguments(args);
-        let mut context: Context = Context::new();
 
         let mut _args: Vec<Variable> = vec!();
         for pair in (*args).iter().zip(self.params.iter()){
             let (node, param) = pair;
-            let val = eval(node, &mut context, funcs).to_value();
+            let val = eval(node, context, funcs).to_value();
             match val{
                 Ok(val) => {_args.push(Variable{name: param.name.clone(), value: val});},
                 Err(e) => {panic!("aiwuhdiauwhd");}
             };
         }
         
+        let mut context: Context = Context::new();
         context.push(Scope::new(_args));
 
         eval(&self.body_start, &mut context, &funcs);

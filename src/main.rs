@@ -24,12 +24,13 @@ use parsing::{
     if_parser,
     file_parser,
 };
-
 use func::FuncDec;
+use context::Context;
 
 fn run_program(funcs: &HashMap<String, FuncDec>){
+    let mut context = Context::new();
     match funcs.get("main") {
-        Some(main) => main.execute(&vec!(), funcs),
+        Some(main) => main.execute(&vec!(), funcs, &mut context),
         None => panic!("No main function found")
     }
 }
@@ -41,8 +42,9 @@ fn main(){
          }
 
          fn main(){
-            let a = 2; 
-            foo(4);
+            let a = 5; 
+            $DEBUG_CONTEXT
+            foo(2);
          }
      ";
     let funcs = file_parser::parse(input).unwrap();

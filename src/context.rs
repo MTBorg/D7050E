@@ -24,4 +24,14 @@ impl Context{
             None => panic!("Inserting into empty scope")
         };
     }
+
+    pub fn get_variable(&self, var: String) -> Option<&Variable>{
+        for scope in self.scopes.iter().rev().last(){
+            match (*scope).vars.get(&var){
+                Some(ref mut var) => { return Some(&var); },
+                None => (),
+            };
+        }
+        None
+    }
 }

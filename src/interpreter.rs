@@ -5,13 +5,20 @@ use crate::{
     parsing::expr_parser::Opcode,
     context::Context,
     func::FuncDec,
+    value::Value
 };
 
 pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, FuncDec>) -> Node {
     match node{
+        Node::Var(var_name) => match context.get_variable(var_name.to_string()){
+            Some(var) => match var.value{
+                Value::Bool(b) => Node::Bool(b),
+                Value::Int(n) => Node::Number(n)
+            },
+            None => panic!("Undefined variable {}", (*var_name))
+        },
         Node::Number(_) |
-        Node::Bool(_) |
-        Node::Var(_) => node.clone(),
+        Node::Bool(_) => node.clone(),
         Node::Op(left_node, op, right_node) => {
             match op{
                 Opcode::Add => eval(left_node, context, funcs) + eval(right_node, context, funcs),
@@ -46,7 +53,7 @@ pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, FuncDec>
         },
         Node::FuncCall(func, args, next_instr) => {
             match funcs.get(func){
-                Some(func) => { func.execute(args, funcs); },
+                Some(func) => { func.execute(args, funcs, context); },
                 None => panic!("No function {}", func)
             }
             match next_instr {
