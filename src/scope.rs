@@ -3,7 +3,7 @@ use crate::variable::Variable;
 
 #[derive(Debug)]
 pub struct Scope{
-    vars: HashMap<String, Variable>
+    pub vars: HashMap<String, Variable>
 }
 
 impl Scope{

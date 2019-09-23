@@ -8,7 +8,7 @@ pub enum Node{
     Number(i32),
     Bool(bool),
     Var(String),
-    Let(Box<Node>, Box<Node>, Option<Box<Node>>),
+    Let(String, Box<Node>, Option<Box<Node>>),
     FuncCall(String, Vec<Node>, Option<Box<Node>>),
     Op(Box<Node>, Opcode, Box<Node>),
     If(Box<Node>, Box<Node>, Option<Box<Node>>, Option<Box<Node>>),

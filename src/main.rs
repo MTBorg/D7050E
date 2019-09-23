@@ -36,12 +36,13 @@ fn run_program(funcs: &HashMap<String, FuncDec>){
 
 fn main(){
      let input = "
-         fn foo(a: i32){
+         fn foo(b: i32){
              $DEBUG_CONTEXT
          }
 
          fn main(){
-             foo(2 == 3);
+            let a = 2; 
+            foo(4);
          }
      ";
     let funcs = file_parser::parse(input).unwrap();

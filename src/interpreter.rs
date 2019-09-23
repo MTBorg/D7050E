@@ -54,6 +54,14 @@ pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, FuncDec>
                 None => Node::Empty
             }
         },
+        Node::Let(id, expr, next_instr) => {
+            let val = eval(expr, context, funcs).to_value().unwrap();
+            context.insert_variable(id.to_string(), val);
+            match next_instr {
+                Some(instr) => eval(instr, context, funcs),
+                None => Node::Empty
+            }
+        },
         Node::Empty => Node::Empty,
         _ => panic!("Unknown nodetype")
     }
