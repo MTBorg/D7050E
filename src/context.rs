@@ -18,6 +18,10 @@ impl Context{
         self.scopes.push(scope);
     }
 
+    pub fn pop(&mut self){
+        self.scopes.pop();
+    }
+
     pub fn insert_variable(&mut self, id: String, val: Value){
         match (*self).scopes.iter_mut().last(){
             Some(scope) => (*scope).vars.insert(id.clone(), Variable{name: id, value: val}),

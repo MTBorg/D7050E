@@ -5,7 +5,8 @@ use crate::{
     parsing::expr_parser::Opcode,
     context::Context,
     func::FuncDec,
-    value::Value
+    value::Value,
+    scope::Scope
 };
 
 pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, FuncDec>) -> Node {
@@ -30,6 +31,7 @@ pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, FuncDec>
             }
         },
         Node::If(expr, then_body, else_body, next_instr) => {
+            context.push(Scope::new());
             if eval(expr, context, funcs) == Node::Bool(true) {
                 eval(then_body, context, funcs);
             } else {
@@ -40,6 +42,7 @@ pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, FuncDec>
                     None => ()
                 };
             }
+            context.pop();
             match next_instr {
                 Some(instr) => eval(instr, context, funcs),
                 None => eval(&Node::Empty, context, funcs)

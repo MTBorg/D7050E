@@ -34,7 +34,7 @@ impl FuncDec {
         }
         
         let mut context: Context = Context::new();
-        context.push(Scope::new(_args));
+        context.push(Scope::from(_args));
 
         eval(&self.body_start, &mut context, &funcs);
     }
