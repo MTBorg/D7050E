@@ -13,7 +13,7 @@ mod scope;
 mod value;
 mod variable;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fs::File, path::Path, io::prelude::*};
 
 // TODO: Remove this eventually
 use context::Context;
@@ -33,17 +33,17 @@ fn run_program(funcs: &HashMap<String, FuncDec>) {
 }
 
 fn main() {
-  let input = "
-         fn foo(b: i32){
-             $DEBUG_CONTEXT
-         }
+  let mut file = match File::open(Path::new("input.rs")) {
+    Err(e) => panic!("Could not open input file: {}", e),
+    Ok(file) => file,
+  };
 
-         fn main(){
-            let a = 5; 
-            $DEBUG_CONTEXT
-            foo(2);
-         }
-     ";
-  let funcs = file_parser::parse(input).unwrap();
+  let mut s = String::new();
+  match file.read_to_string(&mut s) {
+    Err(e) => panic!("Could not read input file: {}", e),
+    Ok(_) => (),
+  }
+
+  let funcs = file_parser::parse(s).unwrap();
   run_program(&funcs);
 }
