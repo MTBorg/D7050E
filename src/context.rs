@@ -32,7 +32,7 @@ impl Context {
   }
 
   pub fn get_variable(&self, var: String) -> Option<&Variable> {
-    for scope in self.scopes.iter().rev().last() {
+    for scope in self.scopes.iter().rev() {
       match (*scope).vars.get(&var) {
         Some(ref mut var) => {
           return Some(&var);
