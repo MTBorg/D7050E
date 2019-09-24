@@ -85,7 +85,7 @@ mod tests {
       *parse("foo(a, b, c)").unwrap(),
       Node::FuncCall(
         "foo".to_string(),
-        vec!["a".to_string(), "b".to_string(), "c".to_string()],
+        vec![Node::Var("a".to_string()), Node::Var("b".to_string()), Node::Var("c".to_string())],
         None
       )
     )
