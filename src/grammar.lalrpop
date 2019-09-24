@@ -76,7 +76,7 @@ Var: Box<Node> = {
 };
 
 pub FuncCall: Box<Node> = {
-	<func_name:Identifier> "(" <args:FuncArgs> ")" ";"? =>	
+	<func_name:Identifier> "(" <args:FuncArgs> ")" =>	
 		Box::new(
 			Node::FuncCall(
 				func_name,
@@ -148,7 +148,7 @@ pub Let: Box<Node> = {
 Instruction: Box<Node> = {
 	Let,
 	If,
-	FuncCall,
+	<FuncCall> ";" => <>,
 	Debug_Context,
 	Print
 };
