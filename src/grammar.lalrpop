@@ -8,12 +8,12 @@ use std::{
 use crate::{
 	parsing::expr_parser::Opcode,
 	node::Node,
-	func::FuncDec,
+	func::Func,
 	func_param::FuncParam,
 	types::Type,
 };
 
-pub File: HashMap<String, FuncDec> = {
+pub File: HashMap<String, Func> = {
 	<mut func_decs:FuncDec+> => {
 		let mut hmap = HashMap::new();
 		for func_dec in func_decs.drain(..){
@@ -126,8 +126,9 @@ FuncParams: Vec<FuncParam> = {
 	}
 };
 
-pub FuncDec: FuncDec = {
-	"fn" <name:FuncName> "(" <params:FuncParams> ")" <ret_type:("->" <Type>)?> <body_start:Body> => FuncDec{
+pub FuncDec: Func = {
+	"fn" <name:FuncName> "(" <params:FuncParams> ")" <ret_type:("->" <Type>)?> <body_start:Body> =>
+	Func{
 		name: name,
 		params: params,
 		ret_type: ret_type,

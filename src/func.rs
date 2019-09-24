@@ -8,18 +8,18 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct FuncDec {
+pub struct Func {
   pub name: String,
   pub params: Vec<FuncParam>,
   pub ret_type: Option<Type>,
   pub body_start: Node,
 }
 
-impl FuncDec {
+impl Func {
   pub fn execute(
     &self,
     args: &Vec<Node>,
-    funcs: &HashMap<String, FuncDec>,
+    funcs: &HashMap<String, Func>,
     context: &mut Context,
   ) -> Option<Value> {
     self.validate_arguments(args);

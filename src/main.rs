@@ -18,7 +18,7 @@ use std::{collections::HashMap, fs::File, path::Path, io::prelude::*};
 
 // TODO: Remove this eventually
 use context::Context;
-use func::FuncDec;
+use func::Func;
 #[allow(unused_imports)]
 use parsing::{
   body_parser, expr_parser, file_parser, func_call_parser, func_dec_parser, if_parser,
@@ -26,7 +26,7 @@ use parsing::{
 };
 use value::Value;
 
-fn run_program(funcs: &HashMap<String, FuncDec>) -> Option<Value> {
+fn run_program(funcs: &HashMap<String, Func>) -> Option<Value> {
   let mut context = Context::new();
   match funcs.get("main") {
     Some(main) => main.execute(&vec![], funcs, &mut context),

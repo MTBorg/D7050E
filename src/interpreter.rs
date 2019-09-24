@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-  context::Context, func::FuncDec, node::Node, parsing::expr_parser::Opcode,
+  context::Context, func::Func, node::Node, parsing::expr_parser::Opcode,
   scope::Scope, value::Value,
 };
 
@@ -17,7 +17,7 @@ macro_rules! eval_next_instr {
 pub fn eval(
   node: &Node,
   context: &mut Context,
-  funcs: &HashMap<String, FuncDec>,
+  funcs: &HashMap<String, Func>,
 ) -> Node {
   match node {
     Node::Var(var_name) => match context.get_variable(var_name.to_string()) {
