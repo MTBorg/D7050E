@@ -3,13 +3,14 @@ use std::collections::HashMap;
 use crate::{
   context::Context, func_param::FuncParam, interpreter::eval, node::Node, scope::Scope,
   variable::Variable,
+  types::Type,
 };
 
 #[derive(Debug)]
 pub struct FuncDec {
   pub name: String,
   pub params: Vec<FuncParam>,
-  pub ret_type: String,
+  pub ret_type: Option<Type>,
   pub body_start: Node,
 }
 

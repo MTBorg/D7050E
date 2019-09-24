@@ -12,6 +12,7 @@ mod parsing;
 mod scope;
 mod value;
 mod variable;
+mod types;
 
 use std::{collections::HashMap, fs::File, path::Path, io::prelude::*};
 

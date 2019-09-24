@@ -10,6 +10,7 @@ use crate::{
 	node::Node,
 	func::FuncDec,
 	func_param::FuncParam,
+	types::Type,
 };
 
 pub File: HashMap<String, FuncDec> = {
@@ -105,7 +106,7 @@ FuncName = Identifier;
 FuncParam: FuncParam = {
 	<name:Identifier> ":" <mutable:"&"?> <_type:Type> => FuncParam{
 		name: name,
-		_type: _type.to_string(),
+		_type: _type,
 		mutable: match mutable{
 			Some(_) => true,
 			None => false
@@ -128,10 +129,7 @@ pub FuncDec: FuncDec = {
 	"fn" <name:FuncName> "(" <params:FuncParams> ")" <ret_type:("->" <Type>)?> <body_start:Body> => FuncDec{
 		name: name,
 		params: params,
-		ret_type: match ret_type{
-			Some(ret_type) => ret_type,
-			None => "".to_string()
-		},
+		ret_type: ret_type,
 		body_start: *body_start
 	}
 };
@@ -199,9 +197,9 @@ Bool: Box<Node> = {
 };
 
 // TODO: This should use a type enum instead
-Type: String = {
-	"bool" => <>.to_string(), 
-	"i32" => <>.to_string(), 
+Type: Type = {
+	"bool" => Type::Bool,
+	"i32" => Type::Int,
 }
 
 Print: Box<Node> = {
