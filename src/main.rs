@@ -1,12 +1,14 @@
-#[macro_use] extern crate lalrpop_util;
+#[macro_use]
+extern crate lalrpop_util;
 
-#[macro_use] mod util;
-mod node;
-mod parsing;
+#[macro_use]
+mod util;
+mod context;
 mod func;
 mod func_param;
 mod interpreter;
-mod context;
+mod node;
+mod parsing;
 mod scope;
 mod value;
 mod variable;
@@ -14,29 +16,24 @@ mod variable;
 use std::collections::HashMap;
 
 // TODO: Remove this eventually
+use context::Context;
+use func::FuncDec;
 #[allow(unused_imports)]
 use parsing::{
-    expr_parser,
-    func_call_parser,
-    func_dec_parser,
-    let_parser,
-    body_parser,
-    if_parser,
-    file_parser,
+  body_parser, expr_parser, file_parser, func_call_parser, func_dec_parser, if_parser,
+  let_parser,
 };
-use func::FuncDec;
-use context::Context;
 
-fn run_program(funcs: &HashMap<String, FuncDec>){
-    let mut context = Context::new();
-    match funcs.get("main") {
-        Some(main) => main.execute(&vec!(), funcs, &mut context),
-        None => panic!("No main function found")
-    }
+fn run_program(funcs: &HashMap<String, FuncDec>) {
+  let mut context = Context::new();
+  match funcs.get("main") {
+    Some(main) => main.execute(&vec![], funcs, &mut context),
+    None => panic!("No main function found"),
+  }
 }
 
-fn main(){
-     let input = "
+fn main() {
+  let input = "
          fn foo(b: i32){
              $DEBUG_CONTEXT
          }
@@ -47,6 +44,6 @@ fn main(){
             foo(2);
          }
      ";
-    let funcs = file_parser::parse(input).unwrap();
-    run_program(&funcs);
+  let funcs = file_parser::parse(input).unwrap();
+  run_program(&funcs);
 }
