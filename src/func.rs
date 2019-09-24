@@ -22,10 +22,9 @@ impl FuncDec {
     funcs: &HashMap<String, FuncDec>,
     context: &mut Context,
   ) -> Option<Value> {
-    println!("Executing {}", self.name);
-
     self.validate_arguments(args);
 
+    // Evaluate argument nodes and push the result to the functions scope
     let mut _args: Vec<Variable> = vec![];
     for pair in (*args).iter().zip(self.params.iter()) {
       let (node, param) = pair;
@@ -42,10 +41,10 @@ impl FuncDec {
         }
       };
     }
-
     let mut context: Context = Context::new();
     context.push(Scope::from(_args));
 
+    // Extract return value (if any)
     match eval(&self.body_start, &mut context, &funcs){
         Node::Number(n) => Some(Value::Int(n)),
         Node::Bool(b) => Some(Value::Bool(b)),
