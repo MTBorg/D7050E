@@ -9,6 +9,7 @@ pub enum Node {
   FuncCall(String, Vec<Node>, Option<Box<Node>>),
   Op(Box<Node>, Opcode, Box<Node>),
   If(Box<Node>, Box<Node>, Option<Box<Node>>, Option<Box<Node>>),
+  Print(Box<Node>, Option<Box<Node>>),
   DebugContext(Option<Box<Node>>),
   Empty,
 }

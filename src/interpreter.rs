@@ -57,6 +57,10 @@ pub fn eval(
       debug_print!(context);
       eval_next_instr!(next_instr, context, funcs)
     }
+    Node::Print(expr, next_instr) => {
+      debug_print!(eval(expr, context, funcs));
+      eval_next_instr!(next_instr, context, funcs)
+    }
     Node::FuncCall(func, args, next_instr) => {
       match funcs.get(func) {
         Some(func) => {

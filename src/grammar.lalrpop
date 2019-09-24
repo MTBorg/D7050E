@@ -151,7 +151,8 @@ Instruction: Box<Node> = {
 	Let,
 	If,
 	FuncCall,
-	Debug_Context
+	Debug_Context,
+	Print
 };
 
 Instructions: Box<Node> = {
@@ -203,6 +204,9 @@ Type: String = {
 	"i32" => <>.to_string(), 
 }
 
+Print: Box<Node> = {
+	"print " <Expr> => Box::new(Node::Print(<>, None))
+};
 Debug_Context: Box<Node> = {
 	"$DEBUG_CONTEXT" => Box::new(Node::DebugContext(None))
 };
