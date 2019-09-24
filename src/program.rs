@@ -40,3 +40,36 @@ impl Program{
     }
   }
 }
+
+#[cfg(test)]
+mod tests{
+    use super::{
+        Program,
+        Path,
+        Value
+    };
+
+    #[test]
+    #[should_panic]
+    fn test_missing_main(){
+        Program::from(Path::new("tests/samples/missing_main.rs")).run();
+    }
+
+    #[test]
+    fn test_empty_main(){
+        assert!(Program::from(Path::new("tests/samples/empty_main.rs")).run().is_none());
+    }
+
+    #[test]
+    fn test_return_in_main(){
+        assert!(
+          match Program::from(Path::new("tests/samples/return_in_main.rs")).run(){
+              Some(value) => match value{
+                Value::Int(3982) => true,
+                _ => false,
+              }
+              None => false,
+          }
+        )
+    }
+}
