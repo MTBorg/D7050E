@@ -62,18 +62,30 @@ pub fn eval(
       eval_next_instr!(next_instr, context, funcs)
     }
     Node::FuncCall(func, args, next_instr) => {
-      match funcs.get(func) {
+      let ret_val = match funcs.get(func) {
         Some(func) => {
-          func.execute(args, funcs, context);
-        }
+          func.execute(args, funcs, context)
+        },
         None => panic!("No function {}", func),
+      };
+      match next_instr {
+          Some(instr) => eval(instr, context, funcs),
+          None => match ret_val {
+              Some(val) => match val{
+                Value::Int(n) => Node::Number(n),
+                Value::Bool(b) => Node::Bool(b)
+              }
+              None => Node::Empty,
+          }
       }
-      eval_next_instr!(next_instr, context, funcs)
     }
     Node::Let(id, expr, next_instr) => {
       let val = eval(expr, context, funcs).to_value().unwrap();
       context.insert_variable(id.to_string(), val);
       eval_next_instr!(next_instr, context, funcs)
+    }
+    Node::Return(expr) => {
+      eval(expr, context, funcs)
     }
     Node::Empty => Node::Empty,
   }

@@ -4,6 +4,7 @@ use crate::{
   context::Context, func_param::FuncParam, interpreter::eval, node::Node, scope::Scope,
   variable::Variable,
   types::Type,
+  value::Value,
 };
 
 #[derive(Debug)]
@@ -20,7 +21,7 @@ impl FuncDec {
     args: &Vec<Node>,
     funcs: &HashMap<String, FuncDec>,
     context: &mut Context,
-  ) {
+  ) -> Option<Value> {
     println!("Executing {}", self.name);
 
     self.validate_arguments(args);
@@ -45,7 +46,12 @@ impl FuncDec {
     let mut context: Context = Context::new();
     context.push(Scope::from(_args));
 
-    eval(&self.body_start, &mut context, &funcs);
+    match eval(&self.body_start, &mut context, &funcs){
+        Node::Number(n) => Some(Value::Int(n)),
+        Node::Bool(b) => Some(Value::Bool(b)),
+        Node::Empty => None,
+        _ => panic!("Unknown return type from function {}", self.name)
+    }
   }
 
   fn validate_arguments(&self, args: &Vec<Node>) {

@@ -150,6 +150,7 @@ Instruction: Box<Node> = {
 	Let,
 	If,
 	<FuncCall> ";" => <>,
+	Return,
 	Debug_Context,
 	Print
 };
@@ -201,6 +202,10 @@ Bool: Box<Node> = {
 Type: Type = {
 	"bool" => Type::Bool,
 	"i32" => Type::Int,
+}
+
+Return: Box<Node> = {
+	"return" <Expr> ";" => Box::new(Node::Return(<>)),
 }
 
 Print: Box<Node> = {

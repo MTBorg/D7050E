@@ -24,8 +24,9 @@ use parsing::{
   body_parser, expr_parser, file_parser, func_call_parser, func_dec_parser, if_parser,
   let_parser,
 };
+use value::Value;
 
-fn run_program(funcs: &HashMap<String, FuncDec>) {
+fn run_program(funcs: &HashMap<String, FuncDec>) -> Option<Value> {
   let mut context = Context::new();
   match funcs.get("main") {
     Some(main) => main.execute(&vec![], funcs, &mut context),
