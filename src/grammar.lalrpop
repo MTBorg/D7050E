@@ -136,6 +136,17 @@ pub FuncDec: Func = {
 	}
 };
 
+pub Assign: Box<Node> = {
+	<id:Identifier> "=" <expr:Expr> ";" =>
+		Box::new(
+			Node::Assign(
+			id,
+			expr,
+			None
+			)
+		)
+};
+
 pub Let: Box<Node> = {
 	"let" <id:Identifier> <_type:(":" <Type>)?> "=" <expr:Expr> ";"=> 
 		Box::new(
@@ -149,6 +160,7 @@ pub Let: Box<Node> = {
 
 Instruction: Box<Node> = {
 	Let,
+	Assign,
 	If,
 	<FuncCall> ";" => <>,
 	Return,
