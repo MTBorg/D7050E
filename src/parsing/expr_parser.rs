@@ -73,6 +73,11 @@ mod tests {
   }
 
   #[test]
+  fn test_parse_addition_var_int() {
+    assert!(parse("n + 2").is_ok());
+  }
+
+  #[test]
   fn test_parse_correct_expressions() {
     assert!(parse("1+2+3").is_ok());
     assert!(parse("1 * 3 + 2 / 1").is_ok());
