@@ -72,4 +72,20 @@ mod tests{
           }
         )
     }
+
+    #[test]
+    fn test_if_statement(){
+      assert_eq!(
+          Program::from(Path::new("tests/samples/if_statement_true.rs")).run().unwrap(),
+          Value::Int(5)
+      )
+    }
+
+    #[test]
+    fn test_if_else(){
+      assert_eq!(
+          Program::from(Path::new("tests/samples/if_else.rs")).run().unwrap(),
+          Value::Int(2)
+      )
+    }
 }
