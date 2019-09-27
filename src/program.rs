@@ -96,4 +96,12 @@ mod tests{
           Value::Int(6)
       )
     }
+
+    #[test]
+    fn test_fibbonaci_recursive(){
+      assert_eq!(
+          Program::from(Path::new("tests/samples/fibbonaci_recursive.rs")).run().unwrap(),
+          Value::Int(34)
+      )
+    }
 }
