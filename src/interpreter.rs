@@ -41,7 +41,7 @@ pub fn eval(
     Node::If(expr, then_body, else_body, next_instr) => {
       context.push(Scope::new());
       if eval(expr, context, funcs) == Node::Bool(true) {
-        eval(then_body, context, funcs);
+        return eval(then_body, context, funcs);
       } else {
         match else_body {
           Some(body) => {
