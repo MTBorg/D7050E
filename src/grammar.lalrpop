@@ -217,7 +217,7 @@ Type: Type = {
 	"i32" => Type::Int,
 }
 
-Return: Box<Node> = {
+pub Return: Box<Node> = {
 	"return" <Expr> ";" => Box::new(Node::Return(<>, None)),
 }
 

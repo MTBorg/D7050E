@@ -8,6 +8,7 @@ pub mod func_dec_parser;
 pub mod if_parser;
 pub mod let_parser;
 pub mod assign_parser;
+pub mod return_parser;
 
 #[derive(Debug)]
 pub struct ParseError {
