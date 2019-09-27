@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::{
-  context::Context, func::Func, node::Node, parsing::expr_parser::Opcode,
-  scope::Scope, value::Value,
+  context::Context, func::Func, node::Node, parsing::expr_parser::Opcode, scope::Scope,
+  value::Value, variable::Variable,
 };
 
 macro_rules! eval_next_instr {
@@ -14,11 +14,7 @@ macro_rules! eval_next_instr {
   };
 }
 
-pub fn eval(
-  node: &Node,
-  context: &mut Context,
-  funcs: &HashMap<String, Func>,
-) -> Node {
+pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, Func>) -> Node {
   match node {
     Node::Var(var_name) => match context.get_variable(var_name.to_string()) {
       Some(var) => match var.value {
@@ -63,20 +59,18 @@ pub fn eval(
     }
     Node::FuncCall(func, args, next_instr) => {
       let ret_val = match funcs.get(func) {
-        Some(func) => {
-          func.execute(args, funcs, context)
-        },
+        Some(func) => func.execute(args, funcs, context),
         None => panic!("No function {}", func),
       };
       match next_instr {
-          Some(instr) => eval(instr, context, funcs),
-          None => match ret_val {
-              Some(val) => match val{
-                Value::Int(n) => Node::Number(n),
-                Value::Bool(b) => Node::Bool(b)
-              }
-              None => Node::Empty,
-          }
+        Some(instr) => eval(instr, context, funcs),
+        None => match ret_val {
+          Some(val) => match val {
+            Value::Int(n) => Node::Number(n),
+            Value::Bool(b) => Node::Bool(b),
+          },
+          None => Node::Empty,
+        },
       }
     }
     Node::Let(id, expr, next_instr) => {
@@ -84,9 +78,18 @@ pub fn eval(
       context.insert_variable(id.to_string(), val);
       eval_next_instr!(next_instr, context, funcs)
     }
-    Node::Return(expr, _) => {
-      eval(expr, context, funcs)
+    Node::Assign(id, expr, next_instr) => {
+      let val = match eval(expr, context, funcs).to_value() {
+        Ok(val) => val,
+        Err(e) => panic!("Invalid expression in assign statement: {}", e),
+      };
+      match context.get_variable_mut(id.to_string()) {
+        Some(var) => *var = Variable{ name: id.to_string(), value: val },
+        None => panic!("No variable {} found in context", id),
+      };
+      eval_next_instr!(next_instr, context, funcs)
     }
+    Node::Return(expr, _) => eval(expr, context, funcs),
     Node::Empty => Node::Empty,
   }
 }

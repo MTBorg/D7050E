@@ -6,6 +6,7 @@ pub enum Node {
   Bool(bool),
   Var(String),
   Let(String, Box<Node>, Option<Box<Node>>),
+  Assign(String, Box<Node>, Option<Box<Node>>),
   FuncCall(String, Vec<Node>, Option<Box<Node>>),
   Op(Box<Node>, Opcode, Box<Node>),
   If(Box<Node>, Box<Node>, Option<Box<Node>>, Option<Box<Node>>),
@@ -24,6 +25,7 @@ impl Node {
     match *self {
       Node::Let(_, _, ref mut right_most)
       | Node::FuncCall(_, _, ref mut right_most)
+      | Node::Assign(_, _, ref mut right_most)
       | Node::If(_, _, _, ref mut right_most)
       | Node::Return(_, ref mut right_most)
       | Node::Print(_, ref mut right_most)

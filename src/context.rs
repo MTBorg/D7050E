@@ -33,9 +33,21 @@ impl Context {
 
   pub fn get_variable(&self, var: String) -> Option<&Variable> {
     for scope in self.scopes.iter().rev() {
-      match (*scope).vars.get(&var) {
+      match scope.vars.get(&var) {
         Some(ref mut var) => {
           return Some(&var);
+        }
+        None => (),
+      };
+    }
+    None
+  }
+
+  pub fn get_variable_mut(&mut self, var: String) -> Option<&mut Variable> {
+    for scope in self.scopes.iter_mut().rev() {
+      match scope.vars.get_mut(&var) {
+        Some(var) => {
+          return Some(var);
         }
         None => (),
       };
