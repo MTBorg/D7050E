@@ -88,4 +88,12 @@ mod tests{
           Value::Int(2)
       )
     }
+
+    #[test]
+    fn test_assign(){
+      assert_eq!(
+          Program::from(Path::new("tests/samples/assign.rs")).run().unwrap(),
+          Value::Int(6)
+      )
+    }
 }
