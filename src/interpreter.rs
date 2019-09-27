@@ -84,7 +84,7 @@ pub fn eval(
       context.insert_variable(id.to_string(), val);
       eval_next_instr!(next_instr, context, funcs)
     }
-    Node::Return(expr) => {
+    Node::Return(expr, _) => {
       eval(expr, context, funcs)
     }
     Node::Empty => Node::Empty,

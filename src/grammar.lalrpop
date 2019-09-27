@@ -206,7 +206,7 @@ Type: Type = {
 }
 
 Return: Box<Node> = {
-	"return" <Expr> ";" => Box::new(Node::Return(<>)),
+	"return" <Expr> ";" => Box::new(Node::Return(<>, None)),
 }
 
 Print: Box<Node> = {
