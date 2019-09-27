@@ -15,6 +15,7 @@ pub fn parse(s: &str) -> Result<Box<Node>, ParseError> {
 #[cfg(test)]
 mod tests {
   use super::{parse, Node};
+  use crate::parsing::expr_parser::Opcode;
 
   #[test]
   pub fn test_no_arguments() {
@@ -86,6 +87,42 @@ mod tests {
       Node::FuncCall(
         "foo".to_string(),
         vec![Node::Var("a".to_string()), Node::Var("b".to_string()), Node::Var("c".to_string())],
+        None
+      )
+    )
+  }
+
+  #[test]
+  pub fn test_calc_arg() {
+    assert_eq!(
+      *parse("foo(2+4)").unwrap(),
+      Node::FuncCall(
+        "foo".to_string(),
+        vec![
+            Node::Op(
+                Box::new(Node::Number(2)),
+                Opcode::Add,
+                Box::new(Node::Number(4))
+            )
+        ],
+        None
+      )
+    )
+  }
+
+  #[test]
+  pub fn test_calc_arg_with_var() {
+    assert_eq!(
+      *parse("foo(n+4)").unwrap(),
+      Node::FuncCall(
+        "foo".to_string(),
+        vec![
+            Node::Op(
+                Box::new(Node::Var("n".to_string())),
+                Opcode::Add,
+                Box::new(Node::Number(4))
+            )
+        ],
         None
       )
     )
