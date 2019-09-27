@@ -4,14 +4,23 @@ use crate::{parsing::expr_parser::Opcode, value::Value};
 pub enum Node {
   Number(i32),
   Bool(bool),
+  //Name
   Var(String),
+  // Variable, expression, next instruction
   Let(String, Box<Node>, Option<Box<Node>>),
+  // Variable, expression, next instruction
   Assign(String, Box<Node>, Option<Box<Node>>),
+  // Function, arguments, next instruction
   FuncCall(String, Vec<Node>, Option<Box<Node>>),
+  // Expr, operation, Expr
   Op(Box<Node>, Opcode, Box<Node>),
+  // Condition, then body, else_body, next instruction
   If(Box<Node>, Box<Node>, Option<Box<Node>>, Option<Box<Node>>),
+  // Expression, next instruction
   Return(Box<Node>, Option<Box<Node>>),
+  // Expression, next instruction
   Print(Box<Node>, Option<Box<Node>>),
+  // Next instruction
   DebugContext(Option<Box<Node>>),
   Empty,
 }
