@@ -14,6 +14,7 @@ mod value;
 mod variable;
 mod types;
 mod program;
+mod type_checker;
 
 use std::path::Path;
 
