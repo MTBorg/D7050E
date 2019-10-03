@@ -1,15 +1,21 @@
-use crate::{scope::Scope, value::Value, variable::Variable};
+use crate::{func::Func, scope::Scope, value::Value, variable::Variable};
 
 #[derive(Debug)]
 pub struct Context {
   scopes: Vec<Scope>,
+  pub current_func: Func,
+}
+
+impl From<&Func> for Context {
+  fn from(func: &Func) -> Self {
+    Context {
+      scopes: vec![],
+      current_func: (*func).clone(),
+    }
+  }
 }
 
 impl Context {
-  pub fn new() -> Context {
-    Context { scopes: vec![] }
-  }
-
   pub fn push(&mut self, scope: Scope) {
     self.scopes.push(scope);
   }

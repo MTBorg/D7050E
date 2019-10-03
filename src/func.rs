@@ -7,7 +7,7 @@ use crate::{
   value::Value,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Func {
   pub name: String,
   pub params: Vec<FuncParam>,
@@ -41,7 +41,7 @@ impl Func {
         }
       };
     }
-    let mut context: Context = Context::new();
+    let mut context: Context = Context::from(self);
     context.push(Scope::from(_args));
 
     // Extract return value (if any)
