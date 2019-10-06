@@ -2,9 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
   context::Context, func_param::FuncParam, interpreter::eval, node::Node, scope::Scope,
-  variable::Variable,
-  types::Type,
-  value::Value,
+  types::Type, value::Value, variable::Variable,
 };
 
 #[derive(Debug, Clone)]
@@ -45,11 +43,11 @@ impl Func {
     context.push(Scope::from(_args));
 
     // Extract return value (if any)
-    match eval(&self.body_start, &mut context, &funcs){
-        Node::Number(n) => Some(Value::Int(n)),
-        Node::Bool(b) => Some(Value::Bool(b)),
-        Node::Empty => None,
-        _ => panic!("Unknown return type from function {}", self.name)
+    match eval(&self.body_start, &mut context, &funcs) {
+      Node::Number(n) => Some(Value::Int(n)),
+      Node::Bool(b) => Some(Value::Bool(b)),
+      Node::Empty => None,
+      _ => panic!("Unknown return type from function {}", self.name),
     }
   }
 

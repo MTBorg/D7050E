@@ -84,7 +84,12 @@ pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, Func>) -
         Err(e) => panic!("Invalid expression in assign statement: {}", e),
       };
       match context.get_variable_mut(id.to_string()) {
-        Some(var) => *var = Variable{ name: id.to_string(), value: val },
+        Some(var) => {
+          *var = Variable {
+            name: id.to_string(),
+            value: val,
+          }
+        }
         None => panic!("No variable {} found in context", id),
       };
       eval_next_instr!(next_instr, context, funcs)

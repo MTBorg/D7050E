@@ -10,6 +10,7 @@ mod interpreter;
 mod node;
 mod parsing;
 mod scope;
+mod type_error;
 mod value;
 mod variable;
 mod types;

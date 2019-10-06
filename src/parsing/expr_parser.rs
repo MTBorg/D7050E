@@ -13,6 +13,21 @@ pub enum Opcode {
   Or,
 }
 
+impl Opcode{
+    pub fn to_str(&self) -> &'static str{
+        match self{
+            Opcode::Mul => "*",
+            Opcode::Div => "/",
+            Opcode::Add => "+",
+            Opcode::Sub => "-",
+            Opcode::Eq => "==",
+            Opcode::Neq => "!=",
+            Opcode::And => "&&",
+            Opcode::Or => "||",
+        }
+    }
+}
+
 pub fn parse(s: &str) -> Result<Box<Node>, ParseError> {
   let res = crate::parsing::grammar::ExprParser::new().parse(s);
   return match res {

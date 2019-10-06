@@ -86,7 +86,11 @@ mod tests {
       *parse("foo(a, b, c)").unwrap(),
       Node::FuncCall(
         "foo".to_string(),
-        vec![Node::Var("a".to_string()), Node::Var("b".to_string()), Node::Var("c".to_string())],
+        vec![
+          Node::Var("a".to_string()),
+          Node::Var("b".to_string()),
+          Node::Var("c".to_string())
+        ],
         None
       )
     )
@@ -98,13 +102,11 @@ mod tests {
       *parse("foo(2+4)").unwrap(),
       Node::FuncCall(
         "foo".to_string(),
-        vec![
-            Node::Op(
-                Box::new(Node::Number(2)),
-                Opcode::Add,
-                Box::new(Node::Number(4))
-            )
-        ],
+        vec![Node::Op(
+          Box::new(Node::Number(2)),
+          Opcode::Add,
+          Box::new(Node::Number(4))
+        )],
         None
       )
     )
@@ -116,13 +118,11 @@ mod tests {
       *parse("foo(n+4)").unwrap(),
       Node::FuncCall(
         "foo".to_string(),
-        vec![
-            Node::Op(
-                Box::new(Node::Var("n".to_string())),
-                Opcode::Add,
-                Box::new(Node::Number(4))
-            )
-        ],
+        vec![Node::Op(
+          Box::new(Node::Var("n".to_string())),
+          Opcode::Add,
+          Box::new(Node::Number(4))
+        )],
         None
       )
     )

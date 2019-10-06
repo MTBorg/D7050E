@@ -29,9 +29,7 @@ impl From<&Path> for Program {
 impl Program {
   pub fn run(&self) -> Option<Value> {
     match self.funcs.get("main") {
-      Some(main) => {
-        main.execute(&vec![], &self.funcs, &mut Context::from(main))
-      }
+      Some(main) => main.execute(&vec![], &self.funcs, &mut Context::from(main)),
       None => panic!("No main function found"),
     }
   }

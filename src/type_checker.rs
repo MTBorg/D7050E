@@ -1,4 +1,4 @@
-use crate::{func::Func, node::Node, types::Type, context::Context};
+use crate::{context::Context, func::Func, node::Node, type_error::*, types::Type};
 use std::collections::HashMap;
 
 #[allow(dead_code)]
@@ -6,11 +6,11 @@ pub fn type_check(
   node: &Node,
   context: &Context,
   funcs: &HashMap<String, Func>,
-) -> Result<Option<Type>, &'static str> {
+) -> Result<Option<Type>, Box<dyn std::error::Error>> {
   match node {
     Node::Number(_) => Ok(Some(Type::Int)),
     Node::Bool(_) => Ok(Some(Type::Bool)),
-    Node::Op(e1, _, e2) => {
+    Node::Op(e1, op, e2) => {
       let type1 = match type_check(e1, context, funcs) {
         Ok(r#type) => r#type,
         Err(e) => return Err(e),
@@ -22,7 +22,11 @@ pub fn type_check(
       if type1 == type2 {
         return Ok(type1);
       } else {
-        return Err("Invalid type for operands");
+        return Err(Box::new(OpTypeError {
+          op: (*op).clone(),
+          type_left: type1,
+          type_right: type2,
+        }));
       }
     }
     Node::FuncCall(func, args, _) => {
@@ -36,40 +40,58 @@ pub fn type_check(
         let arg_type = match type_check(arg, context, funcs) {
           Ok(res) => match res {
             Some(r#type) => r#type,
-            None => return Err("Cannot pass void type as argument"),
+            None => {
+              return Err(Box::new(ArgMissmatchTypeError {
+                arg_type: None,
+                param: (*param).clone(),
+              }))
+            }
           },
           Err(e) => return Err(e),
         };
 
         if arg_type != param._type {
-          return Err("Invalid type for function parameter");
+          return Err(Box::new(ArgMissmatchTypeError {
+            arg_type: Some(arg_type),
+            param: (*param).clone(),
+          }));
         }
       }
 
       return Ok(func.ret_type.clone());
     }
     Node::Return(expr, _) => {
-        let expr_type = match type_check(expr, context, funcs){
-          Ok(res) => match res{
-            Some(r#type) => r#type,
-            None => return Err("Expression does not evaluate to a type")
+      let expr_type = match type_check(expr, context, funcs) {
+        Ok(res) => match res {
+          Some(r#type) => r#type,
+          None => {
+            return Err(Box::new(NonTypeExpressionTypeError {
+              expr: (**expr).clone(),
+            }))
+          }
+        },
+        Err(e) => return Err(e),
+      };
+      match &context.current_func.ret_type {
+        Some(r#type) => {
+          if *r#type == expr_type {
+            return Ok(Some(r#type.clone()));
+          } else {
+            return Err(Box::new(InvalidReturnTypeError {
+              expr_type: expr_type,
+              ret_type: Some((*r#type).clone()),
+            }));
+          }
         }
-          Err(e) => return Err(e)
-        };
-        match &context.current_func.ret_type{
-          Some(r#type) => {
-            if *r#type == expr_type{
-              return Ok(Some(r#type.clone()));
-            }else{
-              return Err("Return type does not match function signature");
-            }
-         }
-        None => { return Err("Cannot return in void function"); }
+        None => {
+          return Err(Box::new(InvalidReturnTypeError {
+            expr_type: expr_type,
+            ret_type: None,
+          }));
+        }
+      }
     }
-
-
-    }
-    _ => Err("This type of node does not evaluate to a type"),
+    _ => Err(Box::new(InvalidNodeTypeError {})),
   }
 }
 
@@ -209,7 +231,12 @@ mod tests {
     let mut funcs = HashMap::new();
     funcs.insert("foo".to_string(), func_dec);
     assert_eq!(
-      type_check(&Node::FuncCall("foo".to_string(), vec!(), None), &context, &funcs).unwrap(),
+      type_check(
+        &Node::FuncCall("foo".to_string(), vec!(), None),
+        &context,
+        &funcs
+      )
+      .unwrap(),
       Some(Type::Int)
     );
   }
@@ -226,7 +253,12 @@ mod tests {
     let mut funcs = HashMap::new();
     funcs.insert("foo".to_string(), func_dec);
     assert_eq!(
-      type_check(&Node::FuncCall("foo".to_string(), vec!(), None), &context, &funcs).unwrap(),
+      type_check(
+        &Node::FuncCall("foo".to_string(), vec!(), None),
+        &context,
+        &funcs
+      )
+      .unwrap(),
       Some(Type::Bool)
     );
   }
@@ -402,13 +434,15 @@ mod tests {
     funcs.insert("bar".to_string(), func_dec_2);
 
     assert!(type_check(
-      &Node::Return(Box::new(Node::FuncCall("bar".to_string(), vec!(), None)), None),
+      &Node::Return(
+        Box::new(Node::FuncCall("bar".to_string(), vec!(), None)),
+        None
+      ),
       &context,
       &funcs
     )
     .is_ok());
   }
-
 
   #[test]
   pub fn test_return_with_missing_return_type() {
