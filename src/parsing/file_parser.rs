@@ -1,6 +1,5 @@
 use super::ParseError;
 use crate::func::Func;
-use crate::node::Node;
 use std::collections::HashMap;
 
 pub fn parse(file: String) -> Result<HashMap<String, Func>, ParseError> {

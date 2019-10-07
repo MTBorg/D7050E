@@ -2,6 +2,7 @@ use super::ParseError;
 use crate::node::Node;
 use crate::parsing::grammar::FuncCallParser;
 
+#[allow(dead_code)]
 pub fn parse(s: &str) -> Result<Box<Node>, ParseError> {
   let res = FuncCallParser::new().parse(s);
   return match res {

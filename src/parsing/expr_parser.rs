@@ -28,6 +28,7 @@ impl Opcode{
     }
 }
 
+#[allow(dead_code)]
 pub fn parse(s: &str) -> Result<Box<Node>, ParseError> {
   let res = crate::parsing::grammar::ExprParser::new().parse(s);
   return match res {

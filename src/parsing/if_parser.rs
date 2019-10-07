@@ -1,6 +1,7 @@
 use super::ParseError;
 use crate::node::Node;
 
+#[allow(dead_code)]
 pub fn parse(s: &str) -> Result<Box<Node>, ParseError> {
   let res = crate::parsing::grammar::IfParser::new().parse(s);
   return match res {
