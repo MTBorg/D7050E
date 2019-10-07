@@ -3,7 +3,7 @@ use std::{collections::HashMap, fs::File, io::prelude::*, path::Path};
 use crate::{context::Context, func::Func, parsing::file_parser::parse, value::Value};
 
 pub struct Program {
-  funcs: HashMap<String, Func>,
+  pub funcs: HashMap<String, Func>,
 }
 
 impl From<&Path> for Program {
@@ -33,6 +33,13 @@ impl Program {
       None => panic!("No main function found"),
     }
   }
+
+  pub fn get_main_context(&self) -> Option<Context>{
+      match self.funcs.get("main"){
+          Some(main) => Some(Context::from(main)),
+          _ => None
+        }
+    }
 }
 
 #[cfg(test)]

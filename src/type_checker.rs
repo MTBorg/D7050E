@@ -1,4 +1,6 @@
-use crate::{context::Context, func::Func, node::Node, type_error::*, types::Type};
+use crate::{
+  context::Context, func::Func, node::Node, program::Program, type_error::*, types::Type,
+};
 use std::collections::HashMap;
 
 #[allow(dead_code)]
@@ -64,11 +66,7 @@ pub fn type_check(
       let expr_type = match type_check(expr, context, funcs) {
         Ok(res) => match res {
           Some(r#type) => r#type,
-          None => {
-            return Err(Box::new(NonTypeExpressionTypeError {
-              expr: (**expr).clone(),
-            }))
-          }
+          None => return Err(Box::new(NonTypeExpressionTypeError {})),
         },
         Err(e) => return Err(e),
       };
@@ -93,6 +91,53 @@ pub fn type_check(
     }
     _ => Err(Box::new(InvalidNodeTypeError {})),
   }
+}
+
+pub fn type_check_tree(
+  root: &Node,
+  context: &Context,
+  funcs: &HashMap<String, Func>,
+) -> Result<(), Vec<Box<dyn std::error::Error>>> {
+  let mut next_node = Some(root);
+  let mut errors: Vec<Box<dyn std::error::Error>> = vec![];
+  while match next_node {
+    Some(_) => true,
+    _ => false,
+  } {
+    if let Err(e) = type_check(root, context, funcs) {
+      errors.push(e);
+    }
+
+    if let Some(node) = next_node {
+      next_node = node.get_next_instruction();
+    }
+  }
+
+  return if errors.len() == 0 {
+    Ok(())
+  } else {
+    Err(errors)
+  };
+}
+
+pub fn type_check_program(
+  program: &Program,
+  context: &Context,
+) -> Result<(), Vec<Box<dyn std::error::Error>>> {
+  let mut errors: Vec<Box<dyn std::error::Error>> = vec![];
+
+  // Iterate over the values of the hashmap (i.e. the second element)
+  for func in program.funcs.iter().map(|pair| pair.1) {
+    if let Err(ref mut e) = type_check_tree(&func.body_start, context, &program.funcs) {
+      errors.append(e);
+    }
+  }
+
+  return if errors.len() == 0 {
+    Ok(())
+  } else {
+    Err(errors)
+  };
 }
 
 #[cfg(test)]

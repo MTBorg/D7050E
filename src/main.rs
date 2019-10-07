@@ -9,13 +9,13 @@ mod func_param;
 mod interpreter;
 mod node;
 mod parsing;
+mod program;
 mod scope;
+mod type_checker;
 mod type_error;
+mod types;
 mod value;
 mod variable;
-mod types;
-mod program;
-mod type_checker;
 
 use std::path::Path;
 
@@ -26,7 +26,14 @@ use parsing::{
   let_parser,
 };
 use program::Program;
+use type_checker::type_check_program;
 
 fn main() {
-  Program::from(Path::new("input.rs")).run();
+  let program = Program::from(Path::new("input.rs"));
+  let context = match program.get_main_context() {
+    Some(context) => context,
+    _ => panic!("No main in program"),
+  };
+  debug_print!(type_check_program(&program, &context));
+  // program.run();
 }

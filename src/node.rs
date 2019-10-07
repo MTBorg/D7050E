@@ -50,6 +50,21 @@ impl Node {
       _ => Err("Cannot convert node to value"),
     }
   }
+
+  pub fn get_next_instruction(&self) -> Option<&Node> {
+    match self {
+      Node::Let(_, _, ref right_most)
+      | Node::FuncCall(_, _, ref right_most)
+      | Node::Assign(_, _, ref right_most)
+      | Node::If(_, _, _, ref right_most)
+      | Node::Return(_, ref right_most)
+      | Node::Print(_, ref right_most)
+      | Node::DebugContext(ref right_most) => match right_most {
+        Some(node) => Some(&*node),
+        _ => None,
+      }, _ => unreachable!("Cannot get next instruction from unknown node type")
+    }
+  }
 }
 
 impl std::ops::Add<Node> for Node {
