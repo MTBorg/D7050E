@@ -31,6 +31,30 @@ pub fn type_check(
         }));
       }
     }
+    Node::Let(_, r#type, expr, _) => {
+      let expr_type = match type_check(expr, context, funcs) {
+        Ok(res) => res,
+        Err(e) => {
+          return Err(e);
+        }
+      };
+      if let Some(r#type) = r#type {
+        if let Some(expr_type) = expr_type {
+          if expr_type == *r#type {
+            return Ok(Some(expr_type));
+          } else {
+            return Err(Box::new(LetMissmatchTypeError {
+              r#type: (*r#type).clone(),
+              expr_type: expr_type,
+            }));
+          }
+        } else {
+          return Err(Box::new(NonTypeExpressionTypeError {}));
+        }
+      } else {
+        return Ok(expr_type);
+      }
+    }
     Node::FuncCall(func, args, _) => {
       let func = match funcs.get(func) {
         Some(func) => func,

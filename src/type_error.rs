@@ -1,6 +1,4 @@
-use crate::{
-  func_param::FuncParam, parsing::expr_parser::Opcode, types::Type,
-};
+use crate::{func_param::FuncParam, parsing::expr_parser::Opcode, types::Type};
 use std::error;
 
 #[derive(Debug)]
@@ -112,6 +110,29 @@ impl std::fmt::Display for InvalidNodeTypeError {
 }
 
 impl error::Error for InvalidNodeTypeError {
+  fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+    None
+  }
+}
+
+#[derive(Debug)]
+pub struct LetMissmatchTypeError {
+  pub r#type: Type,
+  pub expr_type: Type,
+}
+
+impl std::fmt::Display for LetMissmatchTypeError {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    write!(
+      f,
+      "Let statement expected type {} because of declaration but received {}",
+      self.r#type.to_str(),
+      self.expr_type.to_str()
+    )
+  }
+}
+
+impl error::Error for LetMissmatchTypeError {
   fn source(&self) -> Option<&(dyn error::Error + 'static)> {
     None
   }
