@@ -152,6 +152,7 @@ pub Let: Box<Node> = {
 		Box::new(
 			Node::Let(
 				id,
+				_type,
 				expr,
 				None
 			)

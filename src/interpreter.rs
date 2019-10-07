@@ -73,7 +73,8 @@ pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, Func>) -
         },
       }
     }
-    Node::Let(id, expr, next_instr) => {
+    //TODO: Check type (second parameter)
+    Node::Let(id, _, expr, next_instr) => {
       let val = eval(expr, context, funcs).to_value().unwrap();
       context.insert_variable(id.to_string(), val);
       eval_next_instr!(next_instr, context, funcs)
