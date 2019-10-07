@@ -100,15 +100,15 @@ fn type_check(
             return Ok(Some(r#type.clone()));
           } else {
             return Err(Box::new(InvalidReturnTypeError {
+              func: context.current_func.clone(),
               expr_type: expr_type,
-              ret_type: Some((*r#type).clone()),
             }));
           }
         }
         None => {
           return Err(Box::new(InvalidReturnTypeError {
+            func: context.current_func.clone(),
             expr_type: expr_type,
-            ret_type: None,
           }));
         }
       }

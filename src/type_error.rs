@@ -1,4 +1,6 @@
-use crate::{func_param::FuncParam, parsing::expr_parser::Opcode, types::Type};
+use crate::{
+  func::Func, func_param::FuncParam, parsing::expr_parser::Opcode, types::Type,
+};
 use std::error;
 
 #[derive(Debug)]
@@ -76,17 +78,18 @@ impl error::Error for NonTypeExpressionTypeError {
 
 #[derive(Debug)]
 pub struct InvalidReturnTypeError {
+  pub func: Func,
   pub expr_type: Type,
-  pub ret_type: Option<Type>,
 }
 
 impl std::fmt::Display for InvalidReturnTypeError {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     write!(
       f,
-      "Type of returned expression ({}) does not match function signature ({})",
+      "Type of returned expression ({}) does not match function {}'s signature ({})",
       self.expr_type.to_str(),
-      match &self.ret_type {
+      self.func.name,
+      match &self.func.ret_type {
         Some(r#type) => r#type.to_str(),
         None => "void",
       }
