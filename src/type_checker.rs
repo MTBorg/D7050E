@@ -128,7 +128,7 @@ pub fn type_check_tree(
     Some(_) => true,
     _ => false,
   } {
-    if let Err(e) = type_check(root, context, funcs) {
+    if let Err(e) = type_check(next_node.unwrap(), context, funcs) {
       errors.push(e);
     }
 
