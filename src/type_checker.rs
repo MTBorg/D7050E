@@ -4,7 +4,7 @@ use crate::{
 use std::collections::HashMap;
 
 #[allow(dead_code)]
-pub fn type_check(
+fn type_check(
   node: &Node,
   context: &Context,
   funcs: &HashMap<String, Func>,
@@ -117,7 +117,7 @@ pub fn type_check(
   }
 }
 
-pub fn type_check_tree(
+fn type_check_tree(
   root: &Node,
   context: &Context,
   funcs: &HashMap<String, Func>,
