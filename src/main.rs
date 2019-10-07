@@ -34,6 +34,14 @@ fn main() {
     Some(context) => context,
     _ => panic!("No main in program"),
   };
-  debug_print!(type_check_program(&program, &context));
-  // program.run();
+  let type_res = type_check_program(&program, &context);
+  if let Ok(_) = type_res {
+    program.run();
+  } else if let Err(errors) = type_res {
+    println!("ERRORS");
+    println!("=================================");
+    for error in errors.iter() {
+      println!("- {}", error);
+    }
+  }
 }
