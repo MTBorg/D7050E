@@ -6,7 +6,7 @@ pub enum Node {
   Bool(bool),
   //Name
   Var(String),
-  // Variable, expression, next instruction
+  // Variable, type, expression, next instruction
   Let(String, Option<Type>, Box<Node>, Option<Box<Node>>),
   // Variable, expression, next instruction
   Assign(String, Box<Node>, Option<Box<Node>>),

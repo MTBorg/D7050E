@@ -36,7 +36,13 @@ fn main() {
   };
   let type_res = type_check_program(&program, &context);
   if let Ok(_) = type_res {
-    program.run();
+    println!(
+      "Interpreter finished with exit code {}",
+      match program.run() {
+        Some(value) => value.to_string(),
+        None => 0.to_string(),
+      }
+    )
   } else if let Err(errors) = type_res {
     println!("ERRORS");
     println!("=================================");
