@@ -1,17 +1,22 @@
 use crate::{
-  context::Context, func::Func, node::Node, program::Program, type_error::*, types::Type,
+  context::Context, func::Func, interpreter::eval, node::Node, program::Program,
+  scope::Scope, type_error::*, types::Type, value::Value, variable::Variable,
 };
 use std::collections::HashMap;
 
 #[allow(dead_code)]
 fn type_check(
   node: &Node,
-  context: &Context,
+  mut context: &mut Context,
   funcs: &HashMap<String, Func>,
 ) -> Result<Option<Type>, Box<dyn std::error::Error>> {
   match node {
     Node::Number(_) => Ok(Some(Type::Int)),
     Node::Bool(_) => Ok(Some(Type::Bool)),
+    Node::Var(var) => match context.get_variable((*var).clone()) {
+      Some(var) => Ok(Some(Type::from(&var.value))),
+      None => unimplemented!("Var not found"),
+    },
     Node::Op(e1, op, e2) => {
       let type1 = match type_check(e1, context, funcs) {
         Ok(r#type) => r#type,
@@ -31,16 +36,21 @@ fn type_check(
         }));
       }
     }
-    Node::Let(_, r#type, expr, _) => {
+    Node::Let(name, r#type, expr, _) => {
       let expr_type = match type_check(expr, context, funcs) {
         Ok(res) => res,
         Err(e) => {
           return Err(e);
         }
       };
+      let val = match eval(expr, &mut context, funcs).to_value() {
+        Ok(val) => val,
+        Err(e) => unimplemented!("aiwudhiauwdh"),
+      };
       if let Some(r#type) = r#type {
         if let Some(expr_type) = expr_type {
           if expr_type == *r#type {
+            context.insert_variable((*name).clone(), val);
             return Ok(Some(expr_type));
           } else {
             return Err(Box::new(LetMissmatchTypeError {
@@ -52,6 +62,7 @@ fn type_check(
           return Err(Box::new(NonTypeExpressionTypeError {}));
         }
       } else {
+        context.insert_variable((*name).clone(), val);
         return Ok(expr_type);
       }
     }
@@ -118,17 +129,31 @@ fn type_check(
 }
 
 fn type_check_tree(
-  root: &Node,
-  context: &Context,
+  func: &Func,
   funcs: &HashMap<String, Func>,
 ) -> Result<(), Vec<Box<dyn std::error::Error>>> {
-  let mut next_node = Some(root);
+  let mut next_node = Some(&func.body_start);
   let mut errors: Vec<Box<dyn std::error::Error>> = vec![];
+  let mut context = Context::from(func);
+
+  // This code is awful and needs to burn in hell
+  let mut vec: Vec<Variable> = vec![];
+  for param in func.params.iter() {
+    vec.push(Variable {
+      name: param.name.clone(),
+      value: match param._type {
+        Type::Int => Value::Int(0),
+        Type::Bool => Value::Bool(false),
+      },
+    });
+  }
+
+  context.push(Scope::from(vec));
   while match next_node {
     Some(_) => true,
     _ => false,
   } {
-    if let Err(e) = type_check(next_node.unwrap(), context, funcs) {
+    if let Err(e) = type_check(&next_node.unwrap(), &mut context, funcs) {
       errors.push(e);
     }
 
@@ -146,13 +171,12 @@ fn type_check_tree(
 
 pub fn type_check_program(
   program: &Program,
-  context: &Context,
 ) -> Result<(), Vec<Box<dyn std::error::Error>>> {
   let mut errors: Vec<Box<dyn std::error::Error>> = vec![];
 
   // Iterate over the values of the hashmap (i.e. the second element)
   for func in program.funcs.iter().map(|pair| pair.1) {
-    if let Err(ref mut e) = type_check_tree(&func.body_start, context, &program.funcs) {
+    if let Err(ref mut e) = type_check_tree(func, &program.funcs) {
       errors.append(e);
     }
   }
@@ -177,9 +201,9 @@ mod tests {
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
-    let context = Context::from(&func_dec);
+    let mut context = Context::from(&func_dec);
     assert_eq!(
-      type_check(&Node::Number(2), &context, &HashMap::new()).unwrap(),
+      type_check(&Node::Number(2), &mut context, &HashMap::new()).unwrap(),
       Some(Type::Int)
     );
   }
@@ -192,9 +216,9 @@ mod tests {
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
-    let context = Context::from(&func_dec);
+    let mut context = Context::from(&func_dec);
     assert_eq!(
-      type_check(&Node::Bool(true), &context, &HashMap::new()).unwrap(),
+      type_check(&Node::Bool(true), &mut context, &HashMap::new()).unwrap(),
       Some(Type::Bool)
     );
   }
@@ -207,7 +231,7 @@ mod tests {
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
-    let context = Context::from(&func_dec);
+    let mut context = Context::from(&func_dec);
     assert_eq!(
       type_check(
         &Node::Op(
@@ -215,7 +239,7 @@ mod tests {
           Opcode::Add,
           Box::new(Node::Number(2))
         ),
-        &context,
+        &mut context,
         &HashMap::new()
       )
       .unwrap(),
@@ -231,14 +255,14 @@ mod tests {
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
-    let context = Context::from(&func_dec);
+    let mut context = Context::from(&func_dec);
     assert!(!type_check(
       &Node::Op(
         Box::new(Node::Number(2)),
         Opcode::Add,
         Box::new(Node::Bool(true))
       ),
-      &context,
+      &mut context,
       &HashMap::new()
     )
     .is_ok());
@@ -251,14 +275,14 @@ mod tests {
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
-    let context = Context::from(&func_dec);
+    let mut context = Context::from(&func_dec);
     assert!(!type_check(
       &Node::Op(
         Box::new(Node::Bool(true)),
         Opcode::And,
         Box::new(Node::Number(2))
       ),
-      &context,
+      &mut context,
       &HashMap::new()
     )
     .is_ok());
@@ -272,7 +296,7 @@ mod tests {
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
-    let context = Context::from(&func_dec);
+    let mut context = Context::from(&func_dec);
     assert_eq!(
       type_check(
         &Node::Op(
@@ -280,7 +304,7 @@ mod tests {
           Opcode::And,
           Box::new(Node::Bool(true))
         ),
-        &context,
+        &mut context,
         &HashMap::new()
       )
       .unwrap(),
@@ -296,13 +320,13 @@ mod tests {
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
-    let context = Context::from(&func_dec);
+    let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
     funcs.insert("foo".to_string(), func_dec);
     assert_eq!(
       type_check(
         &Node::FuncCall("foo".to_string(), vec!(), None),
-        &context,
+        &mut context,
         &funcs
       )
       .unwrap(),
@@ -318,13 +342,13 @@ mod tests {
       ret_type: Some(Type::Bool),
       body_start: Node::Empty,
     };
-    let context = Context::from(&func_dec);
+    let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
     funcs.insert("foo".to_string(), func_dec);
     assert_eq!(
       type_check(
         &Node::FuncCall("foo".to_string(), vec!(), None),
-        &context,
+        &mut context,
         &funcs
       )
       .unwrap(),
@@ -344,13 +368,13 @@ mod tests {
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
-    let context = Context::from(&func_dec);
+    let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
     funcs.insert("foo".to_string(), func_dec);
     assert_eq!(
       type_check(
         &Node::FuncCall("foo".to_string(), vec!(Node::Number(2)), None),
-        &context,
+        &mut context,
         &funcs
       )
       .unwrap(),
@@ -370,13 +394,13 @@ mod tests {
       ret_type: Some(Type::Bool),
       body_start: Node::Empty,
     };
-    let context = Context::from(&func_dec);
+    let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
     funcs.insert("foo".to_string(), func_dec);
     assert_eq!(
       type_check(
         &Node::FuncCall("foo".to_string(), vec!(Node::Bool(true)), None),
-        &context,
+        &mut context,
         &funcs
       )
       .unwrap(),
@@ -396,12 +420,12 @@ mod tests {
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
-    let context = Context::from(&func_dec);
+    let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
     funcs.insert("foo".to_string(), func_dec);
     assert!(!type_check(
       &Node::FuncCall("foo".to_string(), vec!(Node::Bool(true)), None),
-      &context,
+      &mut context,
       &funcs
     )
     .is_ok());
@@ -415,12 +439,12 @@ mod tests {
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
-    let context = Context::from(&func_dec);
+    let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
     funcs.insert("foo".to_string(), func_dec);
     assert!(type_check(
       &Node::Return(Box::new(Node::Number(5)), None),
-      &context,
+      &mut context,
       &funcs
     )
     .is_ok());
@@ -434,12 +458,12 @@ mod tests {
       ret_type: Some(Type::Bool),
       body_start: Node::Empty,
     };
-    let context = Context::from(&func_dec);
+    let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
     funcs.insert("foo".to_string(), func_dec);
     assert!(!type_check(
       &Node::Return(Box::new(Node::Number(5)), None),
-      &context,
+      &mut context,
       &funcs
     )
     .is_ok());
@@ -453,12 +477,12 @@ mod tests {
       ret_type: Some(Type::Bool),
       body_start: Node::Empty,
     };
-    let context = Context::from(&func_dec);
+    let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
     funcs.insert("foo".to_string(), func_dec);
     assert!(type_check(
       &Node::Return(Box::new(Node::Bool(true)), None),
-      &context,
+      &mut context,
       &funcs
     )
     .is_ok());
@@ -472,12 +496,12 @@ mod tests {
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
-    let context = Context::from(&func_dec);
+    let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
     funcs.insert("foo".to_string(), func_dec);
     assert!(!type_check(
       &Node::Return(Box::new(Node::Bool(false)), None),
-      &context,
+      &mut context,
       &funcs
     )
     .is_ok());
@@ -497,7 +521,7 @@ mod tests {
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
-    let context = Context::from(&func_dec);
+    let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
     funcs.insert("foo".to_string(), func_dec);
     funcs.insert("bar".to_string(), func_dec_2);
@@ -507,7 +531,7 @@ mod tests {
         Box::new(Node::FuncCall("bar".to_string(), vec!(), None)),
         None
       ),
-      &context,
+      &mut context,
       &funcs
     )
     .is_ok());
@@ -521,12 +545,12 @@ mod tests {
       ret_type: None,
       body_start: Node::Empty,
     };
-    let context = Context::from(&func_dec);
+    let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
     funcs.insert("foo".to_string(), func_dec);
     assert!(!type_check(
       &Node::Return(Box::new(Node::Number(2)), None),
-      &context,
+      &mut context,
       &funcs
     )
     .is_ok());

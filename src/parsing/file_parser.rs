@@ -14,7 +14,7 @@ pub fn parse(file: String) -> Result<HashMap<String, Func>, ParseError> {
 
 #[cfg(test)]
 mod tests {
-  use super::{parse, Node};
+  use super::{parse};
   use crate::parsing::expr_parser::Opcode;
 
   #[test]

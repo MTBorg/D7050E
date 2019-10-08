@@ -30,11 +30,7 @@ use type_checker::type_check_program;
 
 fn main() {
   let program = Program::from(Path::new("input.rs"));
-  let context = match program.get_main_context() {
-    Some(context) => context,
-    _ => panic!("No main in program"),
-  };
-  let type_res = type_check_program(&program, &context);
+  let type_res = type_check_program(&program);
   if let Ok(_) = type_res {
     println!(
       "Interpreter finished with exit code {}",

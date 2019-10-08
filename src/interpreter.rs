@@ -1,8 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-  context::Context, func::Func, node::Node, parsing::expr_parser::Opcode, scope::Scope,
-  value::Value, variable::Variable,
+  context::Context, func::Func, node::Node, parsing::expr_parser::Opcode, scope::Scope, value::Value, variable::Variable,
 };
 
 macro_rules! eval_next_instr {
