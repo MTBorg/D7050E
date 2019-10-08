@@ -1,20 +1,20 @@
 use crate::{
-  context::Context, func::Func, interpreter::eval, node::Node, program::Program,
-  scope::Scope, type_error::*, types::Type, value::Value, variable::Variable,
+  context::Context, func::Func, node::Node, program::Program, scope::Scope,
+  type_error::*, types::Type,
 };
 use std::collections::HashMap;
 
 #[allow(dead_code)]
 fn type_check(
   node: &Node,
-  mut context: &mut Context,
+  context: &mut Context<Type>,
   funcs: &HashMap<String, Func>,
 ) -> Result<Option<Type>, Box<dyn std::error::Error>> {
   match node {
     Node::Number(_) => Ok(Some(Type::Int)),
     Node::Bool(_) => Ok(Some(Type::Bool)),
-    Node::Var(var) => match context.get_variable((*var).clone()) {
-      Some(var) => Ok(Some(Type::from(&var.value))),
+    Node::Var(var) => match context.get_var_type((*var).clone()) {
+      Some(r#type) => Ok(Some((*r#type).clone())),
       None => unimplemented!("Var not found"),
     },
     Node::Op(e1, op, e2) => {
@@ -38,32 +38,29 @@ fn type_check(
     }
     Node::Let(name, r#type, expr, _) => {
       let expr_type = match type_check(expr, context, funcs) {
-        Ok(res) => res,
+        Ok(res) => match res {
+          Some(r#type) => r#type,
+          None => return Err(Box::new(NonTypeExpressionTypeError {})),
+        },
         Err(e) => {
           return Err(e);
         }
       };
-      let val = match eval(expr, &mut context, funcs).to_value() {
-        Ok(val) => val,
-        Err(e) => unimplemented!("aiwudhiauwdh"),
-      };
+
       if let Some(r#type) = r#type {
-        if let Some(expr_type) = expr_type {
-          if expr_type == *r#type {
-            context.insert_variable((*name).clone(), val);
-            return Ok(Some(expr_type));
-          } else {
-            return Err(Box::new(LetMissmatchTypeError {
-              r#type: (*r#type).clone(),
-              expr_type: expr_type,
-            }));
-          }
+        // If variable type was specified
+        if expr_type == *r#type {
+          context.insert_type((*name).clone(), expr_type.clone());
+          return Ok(Some(expr_type));
         } else {
-          return Err(Box::new(NonTypeExpressionTypeError {}));
+          return Err(Box::new(LetMissmatchTypeError {
+            r#type: (*r#type).clone(),
+            expr_type: expr_type,
+          }));
         }
       } else {
-        context.insert_variable((*name).clone(), val);
-        return Ok(expr_type);
+        context.insert_type((*name).clone(), expr_type.clone());
+        return Ok(Some(expr_type));
       }
     }
     Node::FuncCall(func, args, _) => {
@@ -136,19 +133,7 @@ fn type_check_tree(
   let mut errors: Vec<Box<dyn std::error::Error>> = vec![];
   let mut context = Context::from(func);
 
-  // This code is awful and needs to burn in hell
-  let mut vec: Vec<Variable> = vec![];
-  for param in func.params.iter() {
-    vec.push(Variable {
-      name: param.name.clone(),
-      value: match param._type {
-        Type::Int => Value::Int(0),
-        Type::Bool => Value::Bool(false),
-      },
-    });
-  }
-
-  context.push(Scope::from(vec));
+  context.push(Scope::from(func.params.clone()));
   while match next_node {
     Some(_) => true,
     _ => false,

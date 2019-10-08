@@ -18,7 +18,7 @@ impl Func {
     &self,
     args: &Vec<Node>,
     funcs: &HashMap<String, Func>,
-    context: &mut Context,
+    context: &mut Context<Variable>,
   ) -> Option<Value> {
     self.validate_arguments(args);
 
@@ -39,7 +39,7 @@ impl Func {
         }
       };
     }
-    let mut context: Context = Context::from(self);
+    let mut context: Context<Variable> = Context::from(self);
     context.push(Scope::from(_args));
 
     // Extract return value (if any)

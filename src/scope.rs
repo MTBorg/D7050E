@@ -1,12 +1,12 @@
-use crate::variable::Variable;
+use crate::{func_param::FuncParam, types::Type, variable::Variable};
 use std::collections::HashMap;
 
 #[derive(Debug)]
-pub struct Scope {
-  pub vars: HashMap<String, Variable>,
+pub struct Scope<T> {
+  pub elements: HashMap<String, T>,
 }
 
-impl From<Vec<Variable>> for Scope {
+impl From<Vec<Variable>> for Scope<Variable> {
   fn from(mut vars: Vec<Variable>) -> Self {
     let mut map = HashMap::new();
     map.reserve(vars.len());
@@ -16,14 +16,28 @@ impl From<Vec<Variable>> for Scope {
       }
       map.insert(var.name.clone(), var);
     }
-    Scope { vars: map }
+    Scope { elements: map }
   }
 }
 
-impl Scope {
-  pub fn new() -> Scope {
-    Scope {
-      vars: HashMap::new(),
+impl From<Vec<FuncParam>> for Scope<Type> {
+  fn from(mut params: Vec<FuncParam>) -> Self {
+    let mut map = HashMap::new();
+    map.reserve(params.len());
+    for param in params.drain(..) {
+      if map.contains_key(&param.name) {
+        panic!("Duplicate argument");
+      }
+      map.insert(param.name.clone(), param._type);
+    }
+    Scope { elements: map }
+  }
+}
+
+impl<T> Scope<T> {
+  pub fn new() -> Self {
+    Self {
+      elements: HashMap::new(),
     }
   }
 }

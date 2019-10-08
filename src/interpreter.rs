@@ -13,7 +13,7 @@ macro_rules! eval_next_instr {
   };
 }
 
-pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, Func>) -> Node {
+pub fn eval(node: &Node, context: &mut Context<Variable>, funcs: &HashMap<String, Func>) -> Node {
   match node {
     Node::Var(var_name) => match context.get_variable(var_name.to_string()) {
       Some(var) => match var.value {
@@ -75,7 +75,7 @@ pub fn eval(node: &Node, context: &mut Context, funcs: &HashMap<String, Func>) -
     //TODO: Check type (second parameter)
     Node::Let(id, _, expr, next_instr) => {
       let val = eval(expr, context, funcs).to_value().unwrap();
-      context.insert_variable(id.to_string(), val);
+      context.insert_variable(Variable{name: id.to_string(), value: val});
       eval_next_instr!(next_instr, context, funcs)
     }
     Node::Assign(id, expr, next_instr) => {

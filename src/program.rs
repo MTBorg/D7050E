@@ -1,6 +1,9 @@
 use std::{collections::HashMap, fs::File, io::prelude::*, path::Path};
 
-use crate::{context::Context, func::Func, parsing::file_parser::parse, value::Value};
+use crate::{
+  context::Context, func::Func, parsing::file_parser::parse, value::Value,
+  variable::Variable,
+};
 
 pub struct Program {
   pub funcs: HashMap<String, Func>,
@@ -34,12 +37,12 @@ impl Program {
     }
   }
 
-  pub fn get_main_context(&self) -> Option<Context>{
-      match self.funcs.get("main"){
-          Some(main) => Some(Context::from(main)),
-          _ => None
-        }
+  pub fn get_main_context(&self) -> Option<Context<Variable>> {
+    match self.funcs.get("main") {
+      Some(main) => Some(Context::from(main)),
+      _ => None,
     }
+  }
 }
 
 #[cfg(test)]
