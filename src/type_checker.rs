@@ -25,6 +25,34 @@ fn type_check(
       Some(r#type) => Ok(Some((*r#type).clone())),
       None => Err(Box::new(UnknownVarError { name: var.clone() })),
     },
+    Node::Assign(var, expr, _) => {
+      // Check the type of the right hand side of assignment
+      let expr_type = match type_check(expr, context, funcs) {
+        Ok(res) => match res {
+          Some(r#type) => r#type,
+          None => return Err(Box::new(NonTypeExpressionTypeError)),
+        },
+        Err(e) => return Err(e),
+      };
+
+      let res = context.get_var_type(var.clone());
+      match res {
+        Some(r#type) => {
+          if *r#type != expr_type {
+            return Err(Box::new(AssignMissmatchTypeError {
+              var: var.clone(),
+              r#type: r#type.clone(),
+              expr_type: expr_type.clone(),
+            }));
+          } else {
+            return Ok(Some(r#type.clone()));
+          }
+        }
+        None => {
+          return Err(Box::new(UnknownVarError { name: var.clone() }));
+        }
+      }
+    }
     Node::Op(e1, op, e2) => {
       let type1 = match type_check(e1, context, funcs) {
         Ok(r#type) => r#type,

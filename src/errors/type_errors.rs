@@ -140,3 +140,28 @@ impl error::Error for LetMissmatchTypeError {
     None
   }
 }
+
+#[derive(Debug)]
+pub struct AssignMissmatchTypeError {
+  pub var: String,
+  pub r#type: Type,
+  pub expr_type: Type,
+}
+
+impl std::fmt::Display for AssignMissmatchTypeError {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    write!(
+      f,
+      "Cannot assign type {} to variable {} of type {}",
+      self.expr_type.to_str(),
+      self.var,
+      self.r#type.to_str()
+    )
+  }
+}
+
+impl error::Error for AssignMissmatchTypeError {
+  fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+    None
+  }
+}
