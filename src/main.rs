@@ -12,10 +12,10 @@ mod parsing;
 mod program;
 mod scope;
 mod type_checker;
-mod type_error;
 mod types;
 mod value;
 mod variable;
+mod errors;
 
 use std::path::Path;
 

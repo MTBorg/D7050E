@@ -1,6 +1,14 @@
 use crate::{
-  context::Context, func::Func, node::Node, program::Program, scope::Scope,
-  type_error::*, types::Type,
+  context::Context,
+  errors::{
+    type_errors::*, unknown_func_error::UnknownFuncError,
+    unknown_var_error::UnknownVarError,
+  },
+  func::Func,
+  node::Node,
+  program::Program,
+  scope::Scope,
+  types::Type,
 };
 use std::collections::HashMap;
 
@@ -15,7 +23,7 @@ fn type_check(
     Node::Bool(_) => Ok(Some(Type::Bool)),
     Node::Var(var) => match context.get_var_type((*var).clone()) {
       Some(r#type) => Ok(Some((*r#type).clone())),
-      None => unimplemented!("Var not found"),
+      None => Err(Box::new(UnknownVarError { name: var.clone() })),
     },
     Node::Op(e1, op, e2) => {
       let type1 = match type_check(e1, context, funcs) {
@@ -66,7 +74,11 @@ fn type_check(
     Node::FuncCall(func, args, _) => {
       let func = match funcs.get(func) {
         Some(func) => func,
-        None => panic!("Could not find function {} while checking types", func),
+        None => {
+          return Err(Box::new(UnknownFuncError {
+            func_name: func.clone(),
+          }))
+        }
       };
 
       // Check argument types
