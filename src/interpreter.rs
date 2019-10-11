@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
 use crate::{
-  context::Context, func::Func, node::Node, parsing::expr_parser::Opcode, scope::Scope, value::Value, variable::Variable,
+  context::Context, func::Func, node::Node, parsing::expr_parser::Opcode, scope::Scope,
+  value::Value, variable::Variable,
 };
 
 macro_rules! eval_next_instr {
@@ -13,7 +14,11 @@ macro_rules! eval_next_instr {
   };
 }
 
-pub fn eval(node: &Node, context: &mut Context<Variable>, funcs: &HashMap<String, Func>) -> Node {
+pub fn eval(
+  node: &Node,
+  context: &mut Context<Variable>,
+  funcs: &HashMap<String, Func>,
+) -> Node {
   match node {
     Node::Var(var_name) => match context.get_variable(var_name.to_string()) {
       Some(var) => match var.value {
@@ -28,10 +33,46 @@ pub fn eval(node: &Node, context: &mut Context<Variable>, funcs: &HashMap<String
       Opcode::Sub => eval(left_node, context, funcs) - eval(right_node, context, funcs),
       Opcode::Mul => eval(left_node, context, funcs) * eval(right_node, context, funcs),
       Opcode::Div => eval(left_node, context, funcs) / eval(right_node, context, funcs),
+      Opcode::Geq => {
+        Node::Bool(eval(left_node, context, funcs) >= eval(right_node, context, funcs))
+      }
+      Opcode::Leq => {
+        Node::Bool(eval(left_node, context, funcs) <= eval(right_node, context, funcs))
+      }
+      Opcode::Gneq => {
+        Node::Bool(eval(left_node, context, funcs) > eval(right_node, context, funcs))
+      }
+      Opcode::Lneq => {
+        Node::Bool(eval(left_node, context, funcs) < eval(right_node, context, funcs))
+      }
       Opcode::Eq => {
         Node::Bool(eval(left_node, context, funcs) == eval(right_node, context, funcs))
       }
-      _ => panic!("Unknown opcode: {:?}", op),
+      Opcode::Neq => {
+        Node::Bool(eval(left_node, context, funcs) != eval(right_node, context, funcs))
+      }
+      Opcode::And => {
+        let b1 = match eval(left_node, context, funcs) {
+          Node::Bool(b) => b,
+          _ => panic!("Left side of logical operator && does not evaluate to boolean"),
+        };
+        let b2 = match eval(right_node, context, funcs) {
+          Node::Bool(b) => b,
+          _ => panic!("Right side of logical operator && does not evaluate to boolean"),
+        };
+        Node::Bool(b1 && b2)
+      }
+      Opcode::Or => {
+        let b1 = match eval(left_node, context, funcs) {
+          Node::Bool(b) => b,
+          _ => panic!("Left side of logical operator || does not evaluate to boolean"),
+        };
+        let b2 = match eval(right_node, context, funcs) {
+          Node::Bool(b) => b,
+          _ => panic!("Right side of logical operator || does not evaluate to boolean"),
+        };
+        Node::Bool(b1 || b2)
+      }
     },
     Node::If(expr, then_body, else_body, next_instr) => {
       context.push(Scope::new());
@@ -75,7 +116,10 @@ pub fn eval(node: &Node, context: &mut Context<Variable>, funcs: &HashMap<String
     //TODO: Check type (second parameter)
     Node::Let(id, _, expr, next_instr) => {
       let val = eval(expr, context, funcs).to_value().unwrap();
-      context.insert_variable(Variable{name: id.to_string(), value: val});
+      context.insert_variable(Variable {
+        name: id.to_string(),
+        value: val,
+      });
       eval_next_instr!(next_instr, context, funcs)
     }
     Node::Assign(id, expr, next_instr) => {

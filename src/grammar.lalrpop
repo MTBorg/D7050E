@@ -58,6 +58,10 @@ FactorOp: Opcode = {
 RelOp: Opcode = {
 	"==" => Opcode::Eq,
 	"!=" => Opcode::Neq,
+	">=" => Opcode::Geq,
+	"<=" => Opcode::Leq,
+	">" => Opcode::Gneq,
+	"<" => Opcode::Lneq
 };
 
 Term: Box<Node> = {

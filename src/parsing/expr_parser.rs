@@ -11,21 +11,29 @@ pub enum Opcode {
   Neq,
   And,
   Or,
+  Geq,
+  Leq,
+  Gneq,
+  Lneq,
 }
 
-impl Opcode{
-    pub fn to_str(&self) -> &'static str{
-        match self{
-            Opcode::Mul => "*",
-            Opcode::Div => "/",
-            Opcode::Add => "+",
-            Opcode::Sub => "-",
-            Opcode::Eq => "==",
-            Opcode::Neq => "!=",
-            Opcode::And => "&&",
-            Opcode::Or => "||",
-        }
+impl Opcode {
+  pub fn to_str(&self) -> &'static str {
+    match self {
+      Opcode::Mul => "*",
+      Opcode::Div => "/",
+      Opcode::Add => "+",
+      Opcode::Sub => "-",
+      Opcode::Eq => "==",
+      Opcode::Neq => "!=",
+      Opcode::And => "&&",
+      Opcode::Or => "||",
+      Opcode::Geq => ">=",
+      Opcode::Leq => "<=",
+      Opcode::Gneq => ">",
+      Opcode::Lneq => "<",
     }
+  }
 }
 
 #[allow(dead_code)]

@@ -4,6 +4,7 @@ extern crate lalrpop_util;
 #[macro_use]
 mod util;
 mod context;
+mod errors;
 mod func;
 mod func_param;
 mod interpreter;
@@ -15,7 +16,6 @@ mod type_checker;
 mod types;
 mod value;
 mod variable;
-mod errors;
 
 use std::path::Path;
 
@@ -31,6 +31,13 @@ use type_checker::type_check_program;
 fn main() {
   let program = Program::from(Path::new("input.rs"));
   let type_res = type_check_program(&program);
+  // println!(
+  //   "{}",
+  //   match program.run() {
+  //     Some(value) => value.to_string(),
+  //     None => 0.to_string(),
+  //   }
+  // );
   if let Ok(_) = type_res {
     println!(
       "Interpreter finished with exit code {}",

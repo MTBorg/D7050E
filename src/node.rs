@@ -1,4 +1,4 @@
-use crate::{parsing::expr_parser::Opcode, value::Value, types::Type};
+use crate::{parsing::expr_parser::Opcode, types::Type, value::Value};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Node {
@@ -62,7 +62,8 @@ impl Node {
       | Node::DebugContext(ref right_most) => match right_most {
         Some(node) => Some(&*node),
         _ => None,
-      }, _ => unreachable!("Cannot get next instruction from unknown node type")
+      },
+      _ => unreachable!("Cannot get next instruction from unknown node type"),
     }
   }
 }
@@ -107,6 +108,16 @@ impl std::ops::Div<Node> for Node {
     match (self, other) {
       (Node::Number(n1), Node::Number(n2)) => Node::Number(n1 / n2),
       _ => panic!("Type error"),
+    }
+  }
+}
+
+impl std::cmp::PartialOrd<Node> for Node {
+  fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    match (self, other) {
+      (Node::Number(n1), Node::Number(n2)) => Some(n1.cmp(n2)),
+      // Unreachable because the type checker should catch the type missmatch
+      _ => unreachable!("Invalid node comparison"),
     }
   }
 }

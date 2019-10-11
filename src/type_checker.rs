@@ -6,6 +6,7 @@ use crate::{
   },
   func::Func,
   node::Node,
+  parsing::expr_parser::Opcode,
   program::Program,
   scope::Scope,
   types::Type,
@@ -63,7 +64,10 @@ fn type_check(
         Err(e) => return Err(e),
       };
       if type1 == type2 {
-        return Ok(type1);
+        return match op {
+          Opcode::Add | Opcode::Sub | Opcode::Mul | Opcode::Div => Ok(type1),
+          _ => Ok(Some(Type::Bool)),
+        };
       } else {
         return Err(Box::new(OpTypeError {
           op: (*op).clone(),
