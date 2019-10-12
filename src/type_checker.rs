@@ -6,7 +6,7 @@ use crate::{
   },
   func::Func,
   node::Node,
-  parsing::expr_parser::Opcode,
+  opcode::Opcode,
   program::Program,
   scope::Scope,
   types::Type,

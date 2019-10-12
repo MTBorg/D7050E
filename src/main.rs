@@ -9,6 +9,7 @@ mod func;
 mod func_param;
 mod interpreter;
 mod node;
+mod opcode;
 mod parsing;
 mod program;
 mod scope;

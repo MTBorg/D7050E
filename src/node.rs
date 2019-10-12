@@ -1,4 +1,4 @@
-use crate::{parsing::expr_parser::Opcode, types::Type, value::Value};
+use crate::{opcode::Opcode, types::Type, value::Value};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Node {

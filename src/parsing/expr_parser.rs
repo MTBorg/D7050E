@@ -1,41 +1,6 @@
 use super::ParseError;
 use crate::node::Node;
 
-#[derive(Debug, PartialEq, Clone)]
-pub enum Opcode {
-  Mul,
-  Div,
-  Add,
-  Sub,
-  Eq,
-  Neq,
-  And,
-  Or,
-  Geq,
-  Leq,
-  Gneq,
-  Lneq,
-}
-
-impl Opcode {
-  pub fn to_str(&self) -> &'static str {
-    match self {
-      Opcode::Mul => "*",
-      Opcode::Div => "/",
-      Opcode::Add => "+",
-      Opcode::Sub => "-",
-      Opcode::Eq => "==",
-      Opcode::Neq => "!=",
-      Opcode::And => "&&",
-      Opcode::Or => "||",
-      Opcode::Geq => ">=",
-      Opcode::Leq => "<=",
-      Opcode::Gneq => ">",
-      Opcode::Lneq => "<",
-    }
-  }
-}
-
 #[allow(dead_code)]
 pub fn parse(s: &str) -> Result<Box<Node>, ParseError> {
   let res = crate::parsing::grammar::ExprParser::new().parse(s);
@@ -49,7 +14,8 @@ pub fn parse(s: &str) -> Result<Box<Node>, ParseError> {
 
 #[cfg(test)]
 mod tests {
-  use super::{parse, Node, Opcode};
+  use super::{parse, Node};
+  use crate::opcode::Opcode;
 
   #[test]
   fn test_parse_number_no_parens() {

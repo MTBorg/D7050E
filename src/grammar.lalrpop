@@ -6,7 +6,7 @@ use std::{
 };
 
 use crate::{
-	parsing::expr_parser::Opcode,
+	opcode::Opcode,
 	node::Node,
 	func::Func,
 	func_param::FuncParam,

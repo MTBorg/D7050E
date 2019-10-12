@@ -1,5 +1,5 @@
 use crate::{
-  func::Func, func_param::FuncParam, parsing::expr_parser::Opcode, types::Type,
+  func::Func, func_param::FuncParam, opcode::Opcode, types::Type,
 };
 use std::error;
 

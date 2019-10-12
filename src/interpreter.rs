@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-  context::Context, func::Func, node::Node, parsing::expr_parser::Opcode, scope::Scope,
+  context::Context, func::Func, node::Node, opcode::Opcode, scope::Scope,
   value::Value, variable::Variable,
 };
 
