@@ -29,15 +29,14 @@ use program::Program;
 use type_checker::type_check_program;
 
 fn main() {
-  let program = Program::from(Path::new("input.rs"));
+  let mut program = Program::from(Path::new("input.rs"));
+  if let Err(e) = program.parse() {
+    println!("Errors");
+    println!("==============================");
+    println!("{}", e);
+    return;
+  }
   let type_res = type_check_program(&program);
-  // println!(
-  //   "{}",
-  //   match program.run() {
-  //     Some(value) => value.to_string(),
-  //     None => 0.to_string(),
-  //   }
-  // );
   if let Ok(_) = type_res {
     println!(
       "Interpreter finished with exit code {}",

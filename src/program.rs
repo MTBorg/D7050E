@@ -1,12 +1,13 @@
 use std::{collections::HashMap, fs::File, io::prelude::*, path::Path};
 
 use crate::{
-  context::Context, func::Func, parsing::file_parser::parse, value::Value,
-  variable::Variable,
+  context::Context, errors::parse_error::ParseError, func::Func,
+  parsing::file_parser::parse, value::Value, variable::Variable,
 };
 
 pub struct Program {
   pub funcs: HashMap<String, Func>,
+  file: String
 }
 
 impl From<&Path> for Program {
@@ -20,12 +21,8 @@ impl From<&Path> for Program {
     match file.read_to_string(&mut s) {
       Ok(_) => (),
       Err(e) => panic!("Could not read input file: {}", e),
-    }
-
-    match parse(s) {
-      Ok(funcs) => Program { funcs: funcs },
-      Err(e) => panic!("Failed to parse program: {:?}", e),
-    }
+    };
+    Program { funcs: HashMap::new(), file: s }
   }
 }
 
@@ -34,6 +31,13 @@ impl Program {
     match self.funcs.get("main") {
       Some(main) => main.execute(&vec![], &self.funcs, &mut Context::from(main)),
       None => panic!("No main function found"),
+    }
+  }
+
+  pub fn parse(&mut self) -> Result<(), ParseError> {
+    match parse(self.file.clone()) {
+      Ok(funcs) => {self.funcs = funcs; return Ok(())}
+      Err(e) => Err(e)
     }
   }
 

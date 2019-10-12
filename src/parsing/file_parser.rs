@@ -1,5 +1,4 @@
-use super::ParseError;
-use crate::func::Func;
+use crate::{errors::parse_error::ParseError, func::Func};
 use std::collections::HashMap;
 
 fn get_error_line_from_byte_offset(
@@ -29,20 +28,6 @@ fn get_error_line_from_byte_offset(
   return (line_number, error_line, error_offset);
 }
 
-pub fn err_print(err_line: usize, err_source: &str, err_offset: usize) -> String {
-  let l1 = String::from(format!(
-    "Err around line {}, character {}: {}",
-    err_line, err_offset, err_source
-  ));
-  let mut l2: String = String::from("\n");
-  for _ in 0..(err_offset + l1.len() - err_source.len()) {
-    l2 += " ";
-  }
-  l2 += "^";
-
-  l1 + &l2
-}
-
 pub fn parse(file: String) -> Result<HashMap<String, Func>, ParseError> {
   let res = crate::parsing::grammar::FileParser::new().parse(file.as_str());
   return match res {
@@ -51,15 +36,26 @@ pub fn parse(file: String) -> Result<HashMap<String, Func>, ParseError> {
       lalrpop_util::ParseError::InvalidToken { location } => {
         let (err_line_num, err_string, err_offset) =
           get_error_line_from_byte_offset(&file, location);
-        //TODO: CONTINUE
-        println!("{}", err_print(err_line_num, &err_string, err_offset));
-        panic!("");
+        return Err(ParseError::InvalidToken{location: err_offset,
+                line: err_string,
+                line_num: err_line_num,
+                });
       }
       lalrpop_util::ParseError::UnrecognizedToken { token, expected } => {
-        panic!("UnrecognizedToken")
+        let (start, token, end) = token;
+        let (line_num, err_string, err_offset1) = get_error_line_from_byte_offset(&file, start);
+        let (_, _, err_offset2) = get_error_line_from_byte_offset(&file, end);
+        return Err(ParseError::UnrecognizedToken {
+          start: err_offset1,
+          end: err_offset2,
+          line: err_string,
+          line_num: line_num,
+          token: token.1.to_string(),
+          expected_tokens: expected,
+        });
       }
-      _ => panic!("123"),
-    }, // debug_print!(e.location); panic!("hewlwdhiaw")},
+      _ => unimplemented!("Unsupported lalrpop error message"),
+    },
   };
 }
 
