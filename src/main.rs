@@ -22,10 +22,7 @@ use std::path::Path;
 
 // TODO: Remove this eventually
 #[allow(unused_imports)]
-use parsing::{
-  body_parser, expr_parser, file_parser, func_call_parser, func_dec_parser, if_parser,
-  let_parser,
-};
+use parsing::file_parser;
 use program::Program;
 use type_checker::type_check_program;
 

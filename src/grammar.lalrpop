@@ -1,4 +1,5 @@
-grammar;
+//grammar;
+grammar<'err>(errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>);
 
 use std::{
 	str::FromStr,
@@ -28,7 +29,7 @@ Identifier: String = {
 	r"_*[a-z]+\w*" => <>.to_string()
 }
 
-pub Expr: Box<Node> = {
+Expr: Box<Node> = {
     Expr ExprOp Factor => Box::new(Node::Op(<>)),
     Expr LogOp Factor => Box::new(Node::Op(<>)),
     Factor,
@@ -80,7 +81,7 @@ Var: Box<Node> = {
 	Identifier => Box::new(Node::Var(<>))
 };
 
-pub FuncCall: Box<Node> = {
+FuncCall: Box<Node> = {
 	<func_name:Identifier> "(" <args:FuncArgs> ")" =>	
 		Box::new(
 			Node::FuncCall(
@@ -130,7 +131,7 @@ FuncParams: Vec<FuncParam> = {
 	}
 };
 
-pub FuncDec: Func = {
+FuncDec: Func = {
 	"fn" <name:FuncName> "(" <params:FuncParams> ")" <ret_type:("->" <Type>)?> <body_start:Body> =>
 	Func{
 		name: name,
@@ -140,7 +141,7 @@ pub FuncDec: Func = {
 	}
 };
 
-pub Assign: Box<Node> = {
+Assign: Box<Node> = {
 	<id:Identifier> "=" <expr:Expr> ";" =>
 		Box::new(
 			Node::Assign(
@@ -151,7 +152,7 @@ pub Assign: Box<Node> = {
 		)
 };
 
-pub Let: Box<Node> = {
+Let: Box<Node> = {
 	"let" <id:Identifier> <_type:(":" <Type>)?> "=" <expr:Expr> ";"=> 
 		Box::new(
 			Node::Let(
@@ -185,14 +186,14 @@ Instructions: Box<Node> = {
 	}
 };
 
-pub Body: Box<Node> = {
+Body: Box<Node> = {
 	"{" <Instructions?> "}" => match <>{
 		Some(node) => node,
 		None => Box::new(Node::Empty)
 	}
 };
 
-pub If: Box<Node> = {
+If: Box<Node> = {
 	"if" <expr:Expr> <body:Body> => Box::new(
 		Node::If(
 			expr,
@@ -222,7 +223,7 @@ Type: Type = {
 	"i32" => Type::Int,
 }
 
-pub Return: Box<Node> = {
+Return: Box<Node> = {
 	"return" <Expr> ";" => Box::new(Node::Return(<>, None)),
 }
 
