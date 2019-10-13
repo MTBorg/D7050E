@@ -111,7 +111,7 @@ FuncArg: Node = {
 FuncName = Identifier;
 
 FuncParam: FuncParam = {
-	<name:Identifier> ":" <mutable:"&"?> <_type:Type> => FuncParam{
+	<name:Identifier> ":" <mutable:"mut"?> <_type:Type> => FuncParam{
 		name: name,
 		_type: _type,
 		mutable: match mutable{
