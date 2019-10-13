@@ -7,7 +7,7 @@ use crate::{
 
 pub struct Program {
   pub funcs: HashMap<String, Func>,
-  file: String
+  file: String,
 }
 
 impl From<&Path> for Program {
@@ -22,7 +22,10 @@ impl From<&Path> for Program {
       Ok(_) => (),
       Err(e) => panic!("Could not read input file: {}", e),
     };
-    Program { funcs: HashMap::new(), file: s }
+    Program {
+      funcs: HashMap::new(),
+      file: s,
+    }
   }
 }
 
@@ -36,8 +39,11 @@ impl Program {
 
   pub fn parse(&mut self) -> Result<(), ParseError> {
     match parse(self.file.clone()) {
-      Ok(funcs) => {self.funcs = funcs; return Ok(())}
-      Err(e) => Err(e)
+      Ok(funcs) => {
+        self.funcs = funcs;
+        return Ok(());
+      }
+      Err(e) => Err(e),
     }
   }
 
@@ -56,66 +62,56 @@ mod tests {
   #[test]
   #[should_panic]
   fn test_missing_main() {
-    Program::from(Path::new("tests/samples/missing_main.rs")).run();
+    let mut program = Program::from(Path::new("tests/samples/missing_main.rs"));
+    program.parse().unwrap();
+    program.run();
   }
 
   #[test]
   fn test_empty_main() {
-    assert!(Program::from(Path::new("tests/samples/empty_main.rs"))
-      .run()
-      .is_none());
+    let mut program = Program::from(Path::new("tests/samples/empty_main.rs"));
+    program.parse().unwrap();
+    assert!(program.run().is_none());
   }
 
   #[test]
   fn test_return_in_main() {
-    assert!(
-      match Program::from(Path::new("tests/samples/return_in_main.rs")).run() {
-        Some(value) => match value {
-          Value::Int(3982) => true,
-          _ => false,
-        },
-        None => false,
-      }
-    )
+    let mut program = Program::from(Path::new("tests/samples/return_in_main.rs"));
+    program.parse().unwrap();
+    assert!(match program.run() {
+      Some(value) => match value {
+        Value::Int(3982) => true,
+        _ => false,
+      },
+      None => false,
+    })
   }
 
   #[test]
   fn test_if_statement() {
-    assert_eq!(
-      Program::from(Path::new("tests/samples/if_statement_true.rs"))
-        .run()
-        .unwrap(),
-      Value::Int(5)
-    )
+    let mut program = Program::from(Path::new("tests/samples/if_statement_true.rs"));
+    program.parse().unwrap();
+    assert_eq!(program.run().unwrap(), Value::Int(5))
   }
 
   #[test]
   fn test_if_else() {
-    assert_eq!(
-      Program::from(Path::new("tests/samples/if_else.rs"))
-        .run()
-        .unwrap(),
-      Value::Int(2)
-    )
+    let mut program = Program::from(Path::new("tests/samples/if_else.rs"));
+    program.parse().unwrap();
+    assert_eq!(program.run().unwrap(), Value::Int(2))
   }
 
   #[test]
   fn test_assign() {
-    assert_eq!(
-      Program::from(Path::new("tests/samples/assign.rs"))
-        .run()
-        .unwrap(),
-      Value::Int(6)
-    )
+    let mut program = Program::from(Path::new("tests/samples/assign.rs"));
+    program.parse().unwrap();
+    assert_eq!(program.run().unwrap(), Value::Int(6))
   }
 
   #[test]
   fn test_fibbonaci_recursive() {
-    assert_eq!(
-      Program::from(Path::new("tests/samples/fibbonaci_recursive.rs"))
-        .run()
-        .unwrap(),
-      Value::Int(34)
-    )
+    let mut program = Program::from(Path::new("tests/samples/fibbonaci_recursive.rs"));
+    program.parse().unwrap();
+    assert_eq!(program.run().unwrap(), Value::Int(34))
   }
 }

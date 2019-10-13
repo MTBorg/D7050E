@@ -600,4 +600,46 @@ mod tests {
     )
     .is_ok());
   }
+
+  #[test]
+  pub fn can_assign_to_mutable() {
+    let func_dec = Func {
+      name: "foo".to_string(),
+      params: vec![],
+      ret_type: None,
+      body_start: Node::Empty,
+    };
+    let mut context = Context::from(&func_dec);
+    let mut funcs = HashMap::new();
+    funcs.insert("foo".to_string(), func_dec.clone());
+    context.push(Scope::from(func_dec.params));
+    context.insert_type("a".to_string(), Type::Int, true);
+    assert!(type_check(
+      &Node::Assign("a".to_string(), Box::new(Node::Number(3)), None),
+      &mut context,
+      &funcs
+    )
+    .is_ok());
+  }
+
+  #[test]
+  pub fn can_not_assign_to_mutable() {
+    let func_dec = Func {
+      name: "foo".to_string(),
+      params: vec![],
+      ret_type: None,
+      body_start: Node::Empty,
+    };
+    let mut context = Context::from(&func_dec);
+    let mut funcs = HashMap::new();
+    funcs.insert("foo".to_string(), func_dec.clone());
+    context.push(Scope::from(func_dec.params));
+    context.insert_type("a".to_string(), Type::Int, false);
+    assert!(!type_check(
+      &Node::Assign("a".to_string(), Box::new(Node::Number(3)), None),
+      &mut context,
+      &funcs
+    )
+    .is_ok());
+  }
 }
