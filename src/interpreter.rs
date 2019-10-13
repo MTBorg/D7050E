@@ -76,18 +76,27 @@ pub fn eval(
     },
     Node::If(expr, then_body, else_body, next_instr) => {
       context.push(Scope::new());
+      let res;
       if eval(expr, context, funcs) == Node::Bool(true) {
-        return eval(then_body, context, funcs);
+        res = eval(then_body, context, funcs);
       } else {
         match else_body {
           Some(body) => {
-            return eval(body, context, funcs);
+            res = eval(body, context, funcs);
           }
-          None => (),
+          None => res = Node::Empty,
         };
       }
       context.pop();
-      eval_next_instr!(next_instr, context, funcs)
+
+      // If res is empty then there can not have been a return statement in any of the
+      // if/else-bodies and thus the next instruction should be executed, otherwise
+      // the value from the bodies should be returned.
+      return if let Node::Empty = res {
+        eval_next_instr!(next_instr, context, funcs)
+      } else {
+        res
+      };
     }
     Node::DebugContext(next_instr) => {
       debug_print!(context);
