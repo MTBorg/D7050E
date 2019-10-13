@@ -1,4 +1,4 @@
-use crate::{errors::parse_error::ParseError, func::Func};
+use crate::{errors::parse_error::ParseError, types::func::Func};
 use std::collections::HashMap;
 
 fn get_error_line_from_byte_offset(
@@ -62,7 +62,7 @@ pub fn parse(file: &str) -> Result<HashMap<String, Func>, ParseError> {
 #[cfg(test)]
 mod tests {
   use super::parse;
-  use crate::opcode::Opcode;
+  use crate::types::opcode::Opcode;
 
   #[test]
   pub fn test_parse_fibbonacci_recursive() {

@@ -1,4 +1,4 @@
-use crate::{func_param::FuncParam, types::Type, variable::Variable};
+use crate::types::{func_param::FuncParam, _type::Type, variable::Variable};
 use std::collections::HashMap;
 
 #[derive(Debug)]

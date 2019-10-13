@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{
+use crate::types::{
   context::Context, func::Func, node::Node, opcode::Opcode, scope::Scope,
   value::Value, variable::Variable,
 };

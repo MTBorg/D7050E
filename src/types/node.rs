@@ -1,4 +1,4 @@
-use crate::{opcode::Opcode, types::Type, value::Value};
+use crate::types::{opcode::Opcode, _type::Type, value::Value};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Node {

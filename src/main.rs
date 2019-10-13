@@ -3,24 +3,15 @@ extern crate lalrpop_util;
 
 #[macro_use]
 mod util;
-mod context;
 mod errors;
-mod func;
-mod func_param;
 mod interpreter;
-mod node;
-mod opcode;
 mod parsing;
-mod program;
-mod scope;
 mod type_checker;
 mod types;
-mod value;
-mod variable;
 
 use std::{convert::TryFrom, path::Path};
 
-use program::Program;
+use types::program::Program;
 use type_checker::type_check_program;
 
 fn main() {

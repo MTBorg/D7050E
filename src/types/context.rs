@@ -1,4 +1,4 @@
-use crate::{func::Func, scope::Scope, types::Type, variable::Variable};
+use crate::types::{func::Func, scope::Scope, _type::Type, variable::Variable};
 
 #[derive(Debug)]
 pub struct Context<T> {

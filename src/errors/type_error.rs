@@ -1,4 +1,4 @@
-use crate::{func::Func, func_param::FuncParam, opcode::Opcode, types::Type};
+use crate::types::{func::Func, func_param::FuncParam, opcode::Opcode, _type::Type};
 use std::error;
 
 #[derive(Debug)]

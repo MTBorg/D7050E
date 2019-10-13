@@ -1,4 +1,4 @@
-use crate::types::Type;
+use crate::types::_type::Type;
 
 #[derive(Debug, Clone)]
 pub struct FuncParam {

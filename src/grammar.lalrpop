@@ -6,11 +6,13 @@ use std::{
 };
 
 use crate::{
-	opcode::Opcode,
-	node::Node,
-	func::Func,
-	func_param::FuncParam,
-	types::Type,
+	types::{
+		opcode::Opcode,
+		node::Node,
+		func::Func,
+		func_param::FuncParam,
+		_type::Type
+	}
 };
 
 pub File: HashMap<String, Func> = {

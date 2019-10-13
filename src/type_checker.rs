@@ -1,15 +1,12 @@
 use crate::{
-  context::Context,
   errors::{
     type_error::TypeError, unknown_func_error::UnknownFuncError,
     unknown_var_error::UnknownVarError,
   },
-  func::Func,
-  node::Node,
-  opcode::Opcode,
-  program::Program,
-  scope::Scope,
-  types::Type,
+  types::{
+    _type::Type, context::Context, func::Func, node::Node, opcode::Opcode,
+    program::Program, scope::Scope,
+  },
 };
 use std::collections::HashMap;
 
@@ -40,7 +37,9 @@ fn type_check(
       match res {
         Some((r#type, mutable)) => {
           if !mutable {
-            return Err(Box::new(TypeError::ImmutableAssignment { var: var.clone() }));
+            return Err(Box::new(TypeError::ImmutableAssignment {
+              var: var.clone(),
+            }));
           }
           return if *r#type != expr_type {
             Err(Box::new(TypeError::AssignMissmatch {
@@ -264,7 +263,7 @@ pub fn type_check_program(
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::{func_param::FuncParam, opcode::Opcode};
+  use crate::types::{func_param::FuncParam, opcode::Opcode};
 
   #[test]
   pub fn test_number() {

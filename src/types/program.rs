@@ -1,8 +1,8 @@
 use std::{collections::HashMap, fs::File, io::prelude::*, path::Path};
 
 use crate::{
-  context::Context, errors::parse_error::ParseError, func::Func,
-  parsing::file_parser::parse, value::Value,
+  types::{context::Context, func::Func,value::Value},
+  parsing::file_parser::parse, errors::parse_error::ParseError, 
 };
 
 pub struct Program {

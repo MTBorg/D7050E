@@ -1,8 +1,11 @@
 use std::collections::HashMap;
 
 use crate::{
-  context::Context, func_param::FuncParam, interpreter::eval, node::Node, scope::Scope,
-  types::Type, value::Value, variable::Variable,
+  interpreter::eval,
+  types::{
+    _type::Type, context::Context, func_param::FuncParam, node::Node, scope::Scope,
+    value::Value, variable::Variable,
+  },
 };
 
 #[derive(Debug, Clone)]
