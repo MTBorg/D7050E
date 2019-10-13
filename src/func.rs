@@ -24,8 +24,7 @@ impl Func {
 
     // Evaluate argument nodes and push the result to the functions scope
     let mut _args: Vec<Variable> = vec![];
-    for pair in (*args).iter().zip(self.params.iter()) {
-      let (node, param) = pair;
+    for (node, param) in (*args).iter().zip(self.params.iter()) {
       let val = eval(node, context, funcs).to_value();
       match val {
         Ok(val) => {

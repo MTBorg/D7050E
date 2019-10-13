@@ -43,7 +43,7 @@ impl Program {
   }
 
   fn parse(&mut self) -> Result<(), ParseError> {
-    match parse(self.file.clone()) {
+    match parse(&self.file) {
       Ok(funcs) => {
         self.funcs = funcs;
         return Ok(());

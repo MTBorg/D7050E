@@ -20,7 +20,7 @@ pub fn eval(
   funcs: &HashMap<String, Func>,
 ) -> Node {
   match node {
-    Node::Var(var_name) => match context.get_variable(var_name.to_string()) {
+    Node::Var(var_name) => match context.get_variable(&var_name) {
       Some(var) => match var.value {
         Value::Bool(b) => Node::Bool(b),
         Value::Int(n) => Node::Number(n),
@@ -127,7 +127,7 @@ pub fn eval(
         Ok(val) => val,
         Err(e) => panic!("Invalid expression in assign statement: {}", e),
       };
-      match context.get_variable_mut(id.to_string()) {
+      match context.get_variable_mut(id) {
         Some(var) => {
           *var = Variable {
             name: id.to_string(),

@@ -22,7 +22,7 @@ fn type_check(
   match node {
     Node::Number(_) => Ok(Some((Type::Int, false))),
     Node::Bool(_) => Ok(Some((Type::Bool, false))),
-    Node::Var(var) => match context.get_var_type((*var).clone()) {
+    Node::Var(var) => match context.get_var_type(&var) {
       Some((r#type, mutable)) => Ok(Some(((*r#type).clone(), *mutable))),
       None => Err(Box::new(UnknownVarError { name: var.clone() })),
     },
@@ -36,7 +36,7 @@ fn type_check(
         Err(e) => return Err(e),
       };
 
-      let res = context.get_var_type(var.clone());
+      let res = context.get_var_type(&var);
       match res {
         Some((r#type, mutable)) => {
           if !mutable {
@@ -102,7 +102,7 @@ fn type_check(
       return if let Some(r#type) = r#type {
         // If variable type was specified
         if expr_type == *r#type {
-          context.insert_type((*name).clone(), expr_type.clone(), *mutable);
+          context.insert_type(name, expr_type.clone(), *mutable);
           Ok(Some((expr_type, *mutable)))
         } else {
           Err(Box::new(LetMissmatchTypeError {
@@ -111,7 +111,7 @@ fn type_check(
           }))
         }
       } else {
-        context.insert_type((*name).clone(), expr_type.clone(), *mutable);
+        context.insert_type(name, expr_type.clone(), *mutable);
         Ok(Some((expr_type, *mutable)))
       };
     }
@@ -395,7 +395,7 @@ mod tests {
       body_start: Node::Empty,
     };
     let mut context = Context::from(&func_dec);
-    let mut funcs = HashMap::new();
+    let mut funcs: HashMap<String, Func> = HashMap::new();
     funcs.insert("foo".to_string(), func_dec);
     assert_eq!(
       type_check(
@@ -642,7 +642,7 @@ mod tests {
     let mut funcs = HashMap::new();
     funcs.insert("foo".to_string(), func_dec.clone());
     context.push(Scope::from(func_dec.params));
-    context.insert_type("a".to_string(), Type::Int, true);
+    context.insert_type("a", Type::Int, true);
     assert!(type_check(
       &Node::Assign("a".to_string(), Box::new(Node::Number(3)), None),
       &mut context,
@@ -663,7 +663,7 @@ mod tests {
     let mut funcs = HashMap::new();
     funcs.insert("foo".to_string(), func_dec.clone());
     context.push(Scope::from(func_dec.params));
-    context.insert_type("a".to_string(), Type::Int, false);
+    context.insert_type("a", Type::Int, false);
     assert!(!type_check(
       &Node::Assign("a".to_string(), Box::new(Node::Number(3)), None),
       &mut context,
@@ -681,10 +681,10 @@ mod tests {
       body_start: Node::Empty,
     };
     let mut context = Context::from(&func_dec);
-    let mut funcs = HashMap::new();
+    let mut funcs: HashMap<String, Func> = HashMap::new();
     funcs.insert("foo".to_string(), func_dec.clone());
     context.push(Scope::from(func_dec.params.clone()));
-    context.insert_type("a".to_string(), Type::Int, false);
+    context.insert_type("a", Type::Int, false);
     assert!(!type_check_tree(&func_dec, &funcs).is_ok());
   }
 
@@ -697,10 +697,10 @@ mod tests {
       body_start: Node::Empty,
     };
     let mut context = Context::from(&func_dec);
-    let mut funcs = HashMap::new();
+    let mut funcs: HashMap<String, Func> = HashMap::new();
     funcs.insert("foo".to_string(), func_dec.clone());
     context.push(Scope::from(func_dec.params.clone()));
-    context.insert_type("a".to_string(), Type::Int, false);
+    context.insert_type("a", Type::Int, false);
     assert!(type_check_tree(&func_dec, &funcs).is_ok());
   }
 }

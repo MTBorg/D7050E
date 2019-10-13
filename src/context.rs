@@ -30,26 +30,26 @@ impl Context<Variable> {
   }
 
   // Wrapper for more readable code
-  pub fn get_variable(&self, var: String) -> Option<&Variable> {
+  pub fn get_variable(&self, var: &str) -> Option<&Variable> {
     self.get_element(var)
   }
   
   // Wrapper for more readable code
-  pub fn get_variable_mut(&mut self, var: String) -> Option<&mut Variable> {
+  pub fn get_variable_mut(&mut self, var: &str) -> Option<&mut Variable> {
     self.get_element_mut(var)
   }
 }
 
 impl Context<(Type, bool)> {
-  pub fn insert_type(&mut self, id: String, r#type: Type, mutable: bool) {
+  pub fn insert_type(&mut self, id: &str, r#type: Type, mutable: bool) {
     match (*self).scopes.iter_mut().last() {
-      Some(scope) => (*scope).elements.insert(id, (r#type, mutable)),
+      Some(scope) => (*scope).elements.insert(id.to_string(), (r#type, mutable)),
       None => unreachable!("Inserting into context without scopes"),
     };
   }
 
   // Wrapper for more readable code
-  pub fn get_var_type(&self, var: String) -> Option<&(Type, bool)> {
+  pub fn get_var_type(&self, var: &str) -> Option<&(Type, bool)> {
     self.get_element(var)
   }
 }
@@ -63,9 +63,9 @@ impl<T> Context<T> {
     self.scopes.pop();
   }
 
-  fn get_element(&self, var: String) -> Option<&T> {
+  fn get_element(&self, var: &str) -> Option<&T> {
     for scope in self.scopes.iter().rev() {
-      match scope.elements.get(&var) {
+      match scope.elements.get(var) {
         Some(ref mut var) => {
           return Some(&var);
         }
@@ -75,9 +75,9 @@ impl<T> Context<T> {
     None
   }
 
-  fn get_element_mut(&mut self, var: String) -> Option<&mut T> {
+  fn get_element_mut(&mut self, var: &str) -> Option<&mut T> {
     for scope in self.scopes.iter_mut().rev() {
-      match scope.elements.get_mut(&var) {
+      match scope.elements.get_mut(var) {
         Some(var) => {
           return Some(var);
         }

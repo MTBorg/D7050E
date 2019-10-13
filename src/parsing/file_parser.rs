@@ -28,8 +28,8 @@ fn get_error_line_from_byte_offset(
   return (line_number, error_line, error_offset);
 }
 
-pub fn parse(file: String) -> Result<HashMap<String, Func>, ParseError> {
-  let res = crate::parsing::grammar::FileParser::new().parse(file.as_str());
+pub fn parse(file: &str) -> Result<HashMap<String, Func>, ParseError> {
+  let res = crate::parsing::grammar::FileParser::new().parse(file);
   return match res {
     Ok(s) => Ok(s),
     Err(e) => match e {
@@ -75,7 +75,6 @@ mod tests {
             fn main(){
                 return fib_rec(9);
             }"
-      .to_string()
     )
     .is_ok())
   }
