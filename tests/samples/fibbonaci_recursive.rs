@@ -1,4 +1,4 @@
-fn fib_rec(n: i32) -> i32{
+fn fib_rec(n: mut i32) -> i32{
     if n == 0{
         return 0;
     }
@@ -8,6 +8,6 @@ fn fib_rec(n: i32) -> i32{
     return fib_rec(n - 1) + fib_rec(n - 2);
 }
 
-fn main(){
+fn main() -> i32{
     return fib_rec(9);
 }
