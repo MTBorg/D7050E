@@ -180,3 +180,26 @@ impl error::Error for ImmutableTypeError {
     None
   }
 }
+
+#[derive(Debug)]
+pub struct MissingReturnTypeError {
+  pub func_name: String,
+  pub ret_type: Type,
+}
+
+impl std::fmt::Display for MissingReturnTypeError {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    write!(
+      f,
+      "Missing return statement in function {}, expected to return type {}",
+      self.func_name,
+      self.ret_type.to_str()
+    )
+  }
+}
+
+impl error::Error for MissingReturnTypeError {
+  fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+    None
+  }
+}

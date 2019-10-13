@@ -189,21 +189,35 @@ fn type_check_tree(
   func: &Func,
   funcs: &HashMap<String, Func>,
 ) -> Result<(), Vec<Box<dyn std::error::Error>>> {
+  debug_print!(func.body_start);
   let mut next_node = Some(&func.body_start);
   let mut errors: Vec<Box<dyn std::error::Error>> = vec![];
   let mut context: Context<(Type, bool)> = Context::from(func);
 
   context.push(Scope::from(func.params.clone()));
+  let mut returned = false;
   while match next_node {
     Some(_) => true,
     _ => false,
   } {
+    if let Node::Return(_, _) = next_node.unwrap() {
+      returned = true;
+    }
     if let Err(e) = type_check(&next_node.unwrap(), &mut context, funcs) {
       errors.push(e);
     }
 
     if let Some(node) = next_node {
       next_node = node.get_next_instruction();
+    }
+  }
+
+  if let Some(r#type) = &func.ret_type {
+    if !returned {
+      errors.push(Box::new(MissingReturnTypeError {
+        func_name: func.name.clone(),
+        ret_type: (*r#type).clone(),
+      }));
     }
   }
 
@@ -639,6 +653,26 @@ mod tests {
     assert!(!type_check(
       &Node::Assign("a".to_string(), Box::new(Node::Number(3)), None),
       &mut context,
+      &funcs
+    )
+    .is_ok());
+  }
+
+  #[test]
+  pub fn no_return_in_returning_function() {
+    let func_dec = Func {
+      name: "foo".to_string(),
+      params: vec![],
+      ret_type: Some(Type::Int),
+      body_start: Node::Empty,
+    };
+    let mut context = Context::from(&func_dec);
+    let mut funcs = HashMap::new();
+    funcs.insert("foo".to_string(), func_dec.clone());
+    context.push(Scope::from(func_dec.params.clone()));
+    context.insert_type("a".to_string(), Type::Int, false);
+    assert!(!type_check_tree(
+      &func_dec,
       &funcs
     )
     .is_ok());
