@@ -57,30 +57,45 @@ fn type_check(
       }
     }
     Node::Op(e1, op, e2) => {
+      // Extract the types out of the operands.
+      // We don't care about the second value of the tuple (mutable)
+      // as an expression is always immutable.
       let type1 = match type_check(e1, context, funcs) {
-        Ok(r#type) => r#type,
+        Ok(res) => match res {
+          Some((r#type, _)) => Some(r#type),
+          None => None,
+        },
         Err(e) => return Err(e),
       };
       let type2 = match type_check(e2, context, funcs) {
-        Ok(r#type) => r#type,
+        Ok(res) => match res {
+          Some((r#type, _)) => Some(r#type),
+          None => None,
+        },
         Err(e) => return Err(e),
       };
 
       return if type1 == type2 {
         match op {
-          Opcode::Add | Opcode::Sub | Opcode::Mul | Opcode::Div => Ok(type1),
+          // This match is pretty ugly but is needed since arithmetic operations
+          // evaluate to the type of their operands where as logical operations always
+          // evaluate to booleans.
+          Opcode::Add | Opcode::Sub | Opcode::Mul | Opcode::Div => Ok(match type1 {
+            Some(r#type) => Some((r#type, false)),
+            None => None,
+          }),
           _ => Ok(Some((Type::Bool, false))),
         }
       } else {
         Err(Box::new(TypeError::OperatorMissmatch {
           op: (*op).clone(),
           type_left: if let Some(r#type) = type1 {
-            Some(r#type.0)
+            Some(r#type)
           } else {
             None
           },
           type_right: if let Some(r#type) = type2 {
-            Some(r#type.0)
+            Some(r#type)
           } else {
             None
           },
