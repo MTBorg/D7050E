@@ -189,7 +189,6 @@ fn type_check_tree(
   func: &Func,
   funcs: &HashMap<String, Func>,
 ) -> Result<(), Vec<Box<dyn std::error::Error>>> {
-  debug_print!(func.body_start);
   let mut next_node = Some(&func.body_start);
   let mut errors: Vec<Box<dyn std::error::Error>> = vec![];
   let mut context: Context<(Type, bool)> = Context::from(func);
@@ -200,9 +199,24 @@ fn type_check_tree(
     Some(_) => true,
     _ => false,
   } {
+    //TODO: This should not be needed
+    // If the next instruction is an empty node we should be at an empty body
+    if let Node::Empty = next_node.unwrap() {
+      if let Some(r#type) = func.ret_type.clone() {
+        errors.push(Box::new(MissingReturnTypeError {
+          func_name: func.name.clone(),
+          ret_type: r#type.clone(),
+        }));
+        return Err(errors);
+      } else {
+        return Ok(());
+      }
+    }
+
     if let Node::Return(_, _) = next_node.unwrap() {
       returned = true;
     }
+
     if let Err(e) = type_check(&next_node.unwrap(), &mut context, funcs) {
       errors.push(e);
     }
@@ -671,10 +685,22 @@ mod tests {
     funcs.insert("foo".to_string(), func_dec.clone());
     context.push(Scope::from(func_dec.params.clone()));
     context.insert_type("a".to_string(), Type::Int, false);
-    assert!(!type_check_tree(
-      &func_dec,
-      &funcs
-    )
-    .is_ok());
+    assert!(!type_check_tree(&func_dec, &funcs).is_ok());
+  }
+
+  #[test]
+  pub fn empty_function_no_ret_type() {
+    let func_dec = Func {
+      name: "foo".to_string(),
+      params: vec![],
+      ret_type: None,
+      body_start: Node::Empty,
+    };
+    let mut context = Context::from(&func_dec);
+    let mut funcs = HashMap::new();
+    funcs.insert("foo".to_string(), func_dec.clone());
+    context.push(Scope::from(func_dec.params.clone()));
+    context.insert_type("a".to_string(), Type::Int, false);
+    assert!(type_check_tree(&func_dec, &funcs).is_ok());
   }
 }
