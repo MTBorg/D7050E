@@ -153,6 +153,7 @@ fn type_check(
         Ok(None)
       };
     }
+    Node::If(condition, _, _, _) => type_check(condition, context, funcs),
     Node::Return(expr, _) => {
       let (expr_type, _) = match type_check(expr, context, funcs) {
         Ok(res) => match res {
