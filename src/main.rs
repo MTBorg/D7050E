@@ -20,9 +20,6 @@ mod variable;
 
 use std::{convert::TryFrom, path::Path};
 
-// TODO: Remove this eventually
-#[allow(unused_imports)]
-use parsing::file_parser;
 use program::Program;
 use type_checker::type_check_program;
 
@@ -30,8 +27,7 @@ fn main() {
   let program = match Program::try_from(Path::new("input.rs")) {
     Ok(program) => program,
     Err(e) => {
-      println!("Errors");
-      println!("==============================");
+      print_error_header();
       println!("{}", e);
       return;
     }
@@ -46,10 +42,14 @@ fn main() {
       }
     )
   } else if let Err(errors) = type_res {
-    println!("ERRORS");
-    println!("=================================");
+    print_error_header();
     for error in errors.iter() {
       println!("- {}", error);
     }
   }
+}
+
+fn print_error_header() {
+  println!("Errors");
+  println!("==============================");
 }

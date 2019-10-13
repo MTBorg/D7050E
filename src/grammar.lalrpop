@@ -217,7 +217,6 @@ Bool: Box<Node> = {
 	"false" => Box::new(Node::Bool(false))
 };
 
-// TODO: This should use a type enum instead
 Type: Type = {
 	"bool" => Type::Bool,
 	"i32" => Type::Int,

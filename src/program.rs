@@ -2,7 +2,7 @@ use std::{collections::HashMap, fs::File, io::prelude::*, path::Path};
 
 use crate::{
   context::Context, errors::parse_error::ParseError, func::Func,
-  parsing::file_parser::parse, value::Value, variable::Variable,
+  parsing::file_parser::parse, value::Value,
 };
 
 pub struct Program {
@@ -51,13 +51,6 @@ impl Program {
       Err(e) => Err(e),
     }
   }
-
-  pub fn get_main_context(&self) -> Option<Context<Variable>> {
-    match self.funcs.get("main") {
-      Some(main) => Some(Context::from(main)),
-      _ => None,
-    }
-  }
 }
 
 #[cfg(test)]
@@ -68,15 +61,13 @@ mod tests {
   #[test]
   #[should_panic]
   fn test_missing_main() {
-    let program =
-      Program::try_from(Path::new("tests/samples/missing_main.rs")).unwrap();
+    let program = Program::try_from(Path::new("tests/samples/missing_main.rs")).unwrap();
     program.run();
   }
 
   #[test]
   fn test_empty_main() {
-    let program =
-      Program::try_from(Path::new("tests/samples/empty_main.rs")).unwrap();
+    let program = Program::try_from(Path::new("tests/samples/empty_main.rs")).unwrap();
     assert!(program.run().is_none());
   }
 

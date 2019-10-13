@@ -9,8 +9,3 @@ pub mod file_parser;
 // pub mod if_parser;
 // pub mod let_parser;
 // pub mod return_parser;
-
-#[derive(Debug)]
-pub struct ParseError {
-  message: String,
-}
