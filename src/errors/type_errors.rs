@@ -1,6 +1,4 @@
-use crate::{
-  func::Func, func_param::FuncParam, opcode::Opcode, types::Type,
-};
+use crate::{func::Func, func_param::FuncParam, opcode::Opcode, types::Type};
 use std::error;
 
 #[derive(Debug)]
@@ -161,6 +159,23 @@ impl std::fmt::Display for AssignMissmatchTypeError {
 }
 
 impl error::Error for AssignMissmatchTypeError {
+  fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+    None
+  }
+}
+
+#[derive(Debug)]
+pub struct ImmutableTypeError {
+  pub var: String,
+}
+
+impl std::fmt::Display for ImmutableTypeError {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    write!(f, "Variable {} is immutable", self.var,)
+  }
+}
+
+impl error::Error for ImmutableTypeError {
   fn source(&self) -> Option<&(dyn error::Error + 'static)> {
     None
   }

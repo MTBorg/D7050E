@@ -20,7 +20,7 @@ impl From<Vec<Variable>> for Scope<Variable> {
   }
 }
 
-impl From<Vec<FuncParam>> for Scope<Type> {
+impl From<Vec<FuncParam>> for Scope<(Type, bool)> {
   fn from(mut params: Vec<FuncParam>) -> Self {
     let mut map = HashMap::new();
     map.reserve(params.len());
@@ -28,7 +28,7 @@ impl From<Vec<FuncParam>> for Scope<Type> {
       if map.contains_key(&param.name) {
         panic!("Duplicate argument");
       }
-      map.insert(param.name.clone(), param._type);
+      map.insert(param.name.clone(), (param._type, param.mutable));
     }
     Scope { elements: map }
   }

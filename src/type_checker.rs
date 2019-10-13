@@ -16,19 +16,19 @@ use std::collections::HashMap;
 #[allow(dead_code)]
 fn type_check(
   node: &Node,
-  context: &mut Context<Type>,
+  context: &mut Context<(Type, bool)>,
   funcs: &HashMap<String, Func>,
-) -> Result<Option<Type>, Box<dyn std::error::Error>> {
+) -> Result<Option<(Type, bool)>, Box<dyn std::error::Error>> {
   match node {
-    Node::Number(_) => Ok(Some(Type::Int)),
-    Node::Bool(_) => Ok(Some(Type::Bool)),
+    Node::Number(_) => Ok(Some((Type::Int, false))),
+    Node::Bool(_) => Ok(Some((Type::Bool, false))),
     Node::Var(var) => match context.get_var_type((*var).clone()) {
-      Some(r#type) => Ok(Some((*r#type).clone())),
+      Some((r#type, mutable)) => Ok(Some(((*r#type).clone(), *mutable))),
       None => Err(Box::new(UnknownVarError { name: var.clone() })),
     },
     Node::Assign(var, expr, _) => {
       // Check the type of the right hand side of assignment
-      let expr_type = match type_check(expr, context, funcs) {
+      let (expr_type, _) = match type_check(expr, context, funcs) {
         Ok(res) => match res {
           Some(r#type) => r#type,
           None => return Err(Box::new(NonTypeExpressionTypeError)),
@@ -38,16 +38,19 @@ fn type_check(
 
       let res = context.get_var_type(var.clone());
       match res {
-        Some(r#type) => {
-          if *r#type != expr_type {
-            return Err(Box::new(AssignMissmatchTypeError {
+        Some((r#type, mutable)) => {
+          if !mutable {
+            return Err(Box::new(ImmutableTypeError { var: var.clone() }));
+          }
+          return if *r#type != expr_type {
+            Err(Box::new(AssignMissmatchTypeError {
               var: var.clone(),
               r#type: r#type.clone(),
               expr_type: expr_type.clone(),
-            }));
+            }))
           } else {
-            return Ok(Some(r#type.clone()));
-          }
+            Ok(Some((r#type.clone(), true)))
+          };
         }
         None => {
           return Err(Box::new(UnknownVarError { name: var.clone() }));
@@ -63,21 +66,30 @@ fn type_check(
         Ok(r#type) => r#type,
         Err(e) => return Err(e),
       };
-      if type1 == type2 {
-        return match op {
+
+      return if type1 == type2 {
+        match op {
           Opcode::Add | Opcode::Sub | Opcode::Mul | Opcode::Div => Ok(type1),
-          _ => Ok(Some(Type::Bool)),
-        };
+          _ => Ok(Some((Type::Bool, false))),
+        }
       } else {
-        return Err(Box::new(OpTypeError {
+        Err(Box::new(OpTypeError {
           op: (*op).clone(),
-          type_left: type1,
-          type_right: type2,
-        }));
-      }
+          type_left: if let Some(r#type) = type1 {
+            Some(r#type.0)
+          } else {
+            None
+          },
+          type_right: if let Some(r#type) = type2 {
+            Some(r#type.0)
+          } else {
+            None
+          },
+        }))
+      };
     }
-    Node::Let(name, r#type, expr, _) => {
-      let expr_type = match type_check(expr, context, funcs) {
+    Node::Let(name, r#type, mutable, expr, _) => {
+      let (expr_type, _) = match type_check(expr, context, funcs) {
         Ok(res) => match res {
           Some(r#type) => r#type,
           None => return Err(Box::new(NonTypeExpressionTypeError {})),
@@ -87,21 +99,21 @@ fn type_check(
         }
       };
 
-      if let Some(r#type) = r#type {
+      return if let Some(r#type) = r#type {
         // If variable type was specified
         if expr_type == *r#type {
-          context.insert_type((*name).clone(), expr_type.clone());
-          return Ok(Some(expr_type));
+          context.insert_type((*name).clone(), expr_type.clone(), *mutable);
+          Ok(Some((expr_type, *mutable)))
         } else {
-          return Err(Box::new(LetMissmatchTypeError {
+          Err(Box::new(LetMissmatchTypeError {
             r#type: (*r#type).clone(),
             expr_type: expr_type,
-          }));
+          }))
         }
       } else {
-        context.insert_type((*name).clone(), expr_type.clone());
-        return Ok(Some(expr_type));
-      }
+        context.insert_type((*name).clone(), expr_type.clone(), *mutable);
+        Ok(Some((expr_type, *mutable)))
+      };
     }
     Node::FuncCall(func, args, _) => {
       let func = match funcs.get(func) {
@@ -115,7 +127,7 @@ fn type_check(
 
       // Check argument types
       for (arg, param) in args.iter().zip(&func.params) {
-        let arg_type = match type_check(arg, context, funcs) {
+        let (arg_type, _) = match type_check(arg, context, funcs) {
           Ok(res) => match res {
             Some(r#type) => r#type,
             None => {
@@ -136,10 +148,14 @@ fn type_check(
         }
       }
 
-      return Ok(func.ret_type.clone());
+      return if let Some(ret_type) = func.ret_type.clone() {
+        Ok(Some((ret_type.clone(), false)))
+      } else {
+        Ok(None)
+      };
     }
     Node::Return(expr, _) => {
-      let expr_type = match type_check(expr, context, funcs) {
+      let (expr_type, _) = match type_check(expr, context, funcs) {
         Ok(res) => match res {
           Some(r#type) => r#type,
           None => return Err(Box::new(NonTypeExpressionTypeError {})),
@@ -149,7 +165,7 @@ fn type_check(
       match &context.current_func.ret_type {
         Some(r#type) => {
           if *r#type == expr_type {
-            return Ok(Some(r#type.clone()));
+            return Ok(Some((r#type.clone(), false)));
           } else {
             return Err(Box::new(InvalidReturnTypeError {
               func: context.current_func.clone(),
@@ -175,7 +191,7 @@ fn type_check_tree(
 ) -> Result<(), Vec<Box<dyn std::error::Error>>> {
   let mut next_node = Some(&func.body_start);
   let mut errors: Vec<Box<dyn std::error::Error>> = vec![];
-  let mut context = Context::from(func);
+  let mut context: Context<(Type, bool)> = Context::from(func);
 
   context.push(Scope::from(func.params.clone()));
   while match next_node {
@@ -220,7 +236,7 @@ pub fn type_check_program(
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::{func_param::FuncParam, parsing::expr_parser::Opcode};
+  use crate::{func_param::FuncParam, opcode::Opcode};
 
   #[test]
   pub fn test_number() {
@@ -233,7 +249,7 @@ mod tests {
     let mut context = Context::from(&func_dec);
     assert_eq!(
       type_check(&Node::Number(2), &mut context, &HashMap::new()).unwrap(),
-      Some(Type::Int)
+      Some((Type::Int, false))
     );
   }
 
@@ -248,7 +264,7 @@ mod tests {
     let mut context = Context::from(&func_dec);
     assert_eq!(
       type_check(&Node::Bool(true), &mut context, &HashMap::new()).unwrap(),
-      Some(Type::Bool)
+      Some((Type::Bool, false))
     );
   }
 
@@ -272,7 +288,7 @@ mod tests {
         &HashMap::new()
       )
       .unwrap(),
-      Some(Type::Int)
+      Some((Type::Int, false))
     );
   }
 
@@ -337,7 +353,7 @@ mod tests {
         &HashMap::new()
       )
       .unwrap(),
-      Some(Type::Bool)
+      Some((Type::Bool, false))
     );
   }
 
@@ -359,7 +375,7 @@ mod tests {
         &funcs
       )
       .unwrap(),
-      Some(Type::Int)
+      Some((Type::Int, false))
     );
   }
 
@@ -381,7 +397,7 @@ mod tests {
         &funcs
       )
       .unwrap(),
-      Some(Type::Bool)
+      Some((Type::Bool, false))
     );
   }
 
@@ -407,7 +423,7 @@ mod tests {
         &funcs
       )
       .unwrap(),
-      Some(Type::Int)
+      Some((Type::Int, false))
     );
   }
 
@@ -433,7 +449,7 @@ mod tests {
         &funcs
       )
       .unwrap(),
-      Some(Type::Bool)
+      Some((Type::Bool, false))
     );
   }
 

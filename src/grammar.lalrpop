@@ -1,5 +1,4 @@
-//grammar;
-grammar<'err>(errors: &'err mut Vec<ErrorRecovery<usize, (usize, &'input str), ()>>);
+grammar;
 
 use std::{
 	str::FromStr,
@@ -153,11 +152,12 @@ Assign: Box<Node> = {
 };
 
 Let: Box<Node> = {
-	"let" <id:Identifier> <_type:(":" <Type>)?> "=" <expr:Expr> ";"=> 
+	"let" <mutable:"mut"?> <id:Identifier> <_type:(":" <Type>)?> "=" <expr:Expr> ";"=> 
 		Box::new(
 			Node::Let(
 				id,
 				_type,
+				if let Some(_) = mutable {true} else {false},
 				expr,
 				None
 			)

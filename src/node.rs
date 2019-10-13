@@ -6,8 +6,8 @@ pub enum Node {
   Bool(bool),
   //Name
   Var(String),
-  // Variable, type, expression, next instruction
-  Let(String, Option<Type>, Box<Node>, Option<Box<Node>>),
+  // Variable, type, mutable, expression, next instruction
+  Let(String, Option<Type>, bool, Box<Node>, Option<Box<Node>>),
   // Variable, expression, next instruction
   Assign(String, Box<Node>, Option<Box<Node>>),
   // Function, arguments, next instruction
@@ -32,7 +32,7 @@ impl Node {
   /// * `child` - The child node to attach.
   pub fn attach_right_most_child(&mut self, child: Node) {
     match *self {
-      Node::Let(_, _, _, ref mut right_most)
+      Node::Let(_, _, _, _, ref mut right_most)
       | Node::FuncCall(_, _, ref mut right_most)
       | Node::Assign(_, _, ref mut right_most)
       | Node::If(_, _, _, ref mut right_most)
@@ -53,7 +53,7 @@ impl Node {
 
   pub fn get_next_instruction(&self) -> Option<&Node> {
     match self {
-      Node::Let(_, _, _, ref right_most)
+      Node::Let(_, _, _, _, ref right_most)
       | Node::FuncCall(_, _, ref right_most)
       | Node::Assign(_, _, ref right_most)
       | Node::If(_, _, _, ref right_most)

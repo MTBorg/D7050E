@@ -40,16 +40,16 @@ impl Context<Variable> {
   }
 }
 
-impl Context<Type> {
-  pub fn insert_type(&mut self, id: String, r#type: Type) {
+impl Context<(Type, bool)> {
+  pub fn insert_type(&mut self, id: String, r#type: Type, mutable: bool) {
     match (*self).scopes.iter_mut().last() {
-      Some(scope) => (*scope).elements.insert(id, r#type),
+      Some(scope) => (*scope).elements.insert(id, (r#type, mutable)),
       None => unreachable!("Inserting into context without scopes"),
     };
   }
 
   // Wrapper for more readable code
-  pub fn get_var_type(&self, var: String) -> Option<&Type> {
+  pub fn get_var_type(&self, var: String) -> Option<&(Type, bool)> {
     self.get_element(var)
   }
 }

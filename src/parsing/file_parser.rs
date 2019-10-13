@@ -62,7 +62,7 @@ pub fn parse(file: String) -> Result<HashMap<String, Func>, ParseError> {
 #[cfg(test)]
 mod tests {
   use super::parse;
-  use crate::parsing::expr_parser::Opcode;
+  use crate::opcode::Opcode;
 
   #[test]
   pub fn test_parse_fibbonacci_recursive() {
