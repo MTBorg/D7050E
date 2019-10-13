@@ -1,7 +1,7 @@
 use crate::{
   context::Context,
   errors::{
-    type_errors::*, unknown_func_error::UnknownFuncError,
+    type_error::TypeError, unknown_func_error::UnknownFuncError,
     unknown_var_error::UnknownVarError,
   },
   func::Func,
@@ -31,7 +31,7 @@ fn type_check(
       let (expr_type, _) = match type_check(expr, context, funcs) {
         Ok(res) => match res {
           Some(r#type) => r#type,
-          None => return Err(Box::new(NonTypeExpressionTypeError)),
+          None => return Err(Box::new(TypeError::NonTypeExpression)),
         },
         Err(e) => return Err(e),
       };
@@ -40,10 +40,10 @@ fn type_check(
       match res {
         Some((r#type, mutable)) => {
           if !mutable {
-            return Err(Box::new(ImmutableTypeError { var: var.clone() }));
+            return Err(Box::new(TypeError::ImmutableAssignment { var: var.clone() }));
           }
           return if *r#type != expr_type {
-            Err(Box::new(AssignMissmatchTypeError {
+            Err(Box::new(TypeError::AssignMissmatch {
               var: var.clone(),
               r#type: r#type.clone(),
               expr_type: expr_type.clone(),
@@ -73,7 +73,7 @@ fn type_check(
           _ => Ok(Some((Type::Bool, false))),
         }
       } else {
-        Err(Box::new(OpTypeError {
+        Err(Box::new(TypeError::OperatorMissmatch {
           op: (*op).clone(),
           type_left: if let Some(r#type) = type1 {
             Some(r#type.0)
@@ -92,7 +92,7 @@ fn type_check(
       let (expr_type, _) = match type_check(expr, context, funcs) {
         Ok(res) => match res {
           Some(r#type) => r#type,
-          None => return Err(Box::new(NonTypeExpressionTypeError {})),
+          None => return Err(Box::new(TypeError::NonTypeExpression {})),
         },
         Err(e) => {
           return Err(e);
@@ -105,7 +105,7 @@ fn type_check(
           context.insert_type(name, expr_type.clone(), *mutable);
           Ok(Some((expr_type, *mutable)))
         } else {
-          Err(Box::new(LetMissmatchTypeError {
+          Err(Box::new(TypeError::LetMissmatch {
             r#type: (*r#type).clone(),
             expr_type: expr_type,
           }))
@@ -131,7 +131,7 @@ fn type_check(
           Ok(res) => match res {
             Some(r#type) => r#type,
             None => {
-              return Err(Box::new(ArgMissmatchTypeError {
+              return Err(Box::new(TypeError::ArgMissmatch {
                 arg_type: None,
                 param: (*param).clone(),
               }))
@@ -141,7 +141,7 @@ fn type_check(
         };
 
         if arg_type != param._type {
-          return Err(Box::new(ArgMissmatchTypeError {
+          return Err(Box::new(TypeError::ArgMissmatch {
             arg_type: Some(arg_type),
             param: (*param).clone(),
           }));
@@ -158,7 +158,7 @@ fn type_check(
       let (expr_type, _) = match type_check(expr, context, funcs) {
         Ok(res) => match res {
           Some(r#type) => r#type,
-          None => return Err(Box::new(NonTypeExpressionTypeError {})),
+          None => return Err(Box::new(TypeError::NonTypeExpression {})),
         },
         Err(e) => return Err(e),
       };
@@ -167,21 +167,21 @@ fn type_check(
           if *r#type == expr_type {
             return Ok(Some((r#type.clone(), false)));
           } else {
-            return Err(Box::new(InvalidReturnTypeError {
+            return Err(Box::new(TypeError::InvalidReturnType {
               func: context.current_func.clone(),
               expr_type: expr_type,
             }));
           }
         }
         None => {
-          return Err(Box::new(InvalidReturnTypeError {
+          return Err(Box::new(TypeError::InvalidReturnType {
             func: context.current_func.clone(),
             expr_type: expr_type,
           }));
         }
       }
     }
-    _ => Err(Box::new(InvalidNodeTypeError {})),
+    _ => Err(Box::new(TypeError::InvalidNode {})),
   }
 }
 
@@ -203,7 +203,7 @@ fn type_check_tree(
     // If the next instruction is an empty node we should be at an empty body
     if let Node::Empty = next_node.unwrap() {
       if let Some(r#type) = func.ret_type.clone() {
-        errors.push(Box::new(MissingReturnTypeError {
+        errors.push(Box::new(TypeError::MissingReturn {
           func_name: func.name.clone(),
           ret_type: r#type.clone(),
         }));
@@ -228,7 +228,7 @@ fn type_check_tree(
 
   if let Some(r#type) = &func.ret_type {
     if !returned {
-      errors.push(Box::new(MissingReturnTypeError {
+      errors.push(Box::new(TypeError::MissingReturn {
         func_name: func.name.clone(),
         ret_type: (*r#type).clone(),
       }));
