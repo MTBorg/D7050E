@@ -10,22 +10,27 @@ pub struct Program {
   file: String,
 }
 
-impl From<&Path> for Program {
-  fn from(path: &Path) -> Self {
+impl std::convert::TryFrom<&Path> for Program {
+  type Error = ParseError;
+  fn try_from(path: &Path) -> Result<Self, Self::Error> {
     let mut file = match File::open(path) {
       Ok(file) => file,
       Err(e) => panic!("Could not open input file: {}", e),
     };
 
     let mut s = String::new();
-    match file.read_to_string(&mut s) {
-      Ok(_) => (),
-      Err(e) => panic!("Could not read input file: {}", e),
+    if let Err(e) = file.read_to_string(&mut s) {
+      panic!("Could not read input file: {}", e);
     };
-    Program {
+
+    let mut program = Program {
       funcs: HashMap::new(),
       file: s,
+    };
+    if let Err(e) = program.parse() {
+      return Err(e);
     }
+    Ok(program)
   }
 }
 
@@ -37,7 +42,7 @@ impl Program {
     }
   }
 
-  pub fn parse(&mut self) -> Result<(), ParseError> {
+  fn parse(&mut self) -> Result<(), ParseError> {
     match parse(self.file.clone()) {
       Ok(funcs) => {
         self.funcs = funcs;
@@ -58,26 +63,27 @@ impl Program {
 #[cfg(test)]
 mod tests {
   use super::{Path, Program, Value};
+  use std::convert::TryFrom;
 
   #[test]
   #[should_panic]
   fn test_missing_main() {
-    let mut program = Program::from(Path::new("tests/samples/missing_main.rs"));
-    program.parse().unwrap();
+    let program =
+      Program::try_from(Path::new("tests/samples/missing_main.rs")).unwrap();
     program.run();
   }
 
   #[test]
   fn test_empty_main() {
-    let mut program = Program::from(Path::new("tests/samples/empty_main.rs"));
-    program.parse().unwrap();
+    let program =
+      Program::try_from(Path::new("tests/samples/empty_main.rs")).unwrap();
     assert!(program.run().is_none());
   }
 
   #[test]
   fn test_return_in_main() {
-    let mut program = Program::from(Path::new("tests/samples/return_in_main.rs"));
-    program.parse().unwrap();
+    let program =
+      Program::try_from(Path::new("tests/samples/return_in_main.rs")).unwrap();
     assert!(match program.run() {
       Some(value) => match value {
         Value::Int(3982) => true,
@@ -89,29 +95,27 @@ mod tests {
 
   #[test]
   fn test_if_statement() {
-    let mut program = Program::from(Path::new("tests/samples/if_statement_true.rs"));
-    program.parse().unwrap();
+    let program =
+      Program::try_from(Path::new("tests/samples/if_statement_true.rs")).unwrap();
     assert_eq!(program.run().unwrap(), Value::Int(5))
   }
 
   #[test]
   fn test_if_else() {
-    let mut program = Program::from(Path::new("tests/samples/if_else.rs"));
-    program.parse().unwrap();
+    let program = Program::try_from(Path::new("tests/samples/if_else.rs")).unwrap();
     assert_eq!(program.run().unwrap(), Value::Int(2))
   }
 
   #[test]
   fn test_assign() {
-    let mut program = Program::from(Path::new("tests/samples/assign.rs"));
-    program.parse().unwrap();
+    let program = Program::try_from(Path::new("tests/samples/assign.rs")).unwrap();
     assert_eq!(program.run().unwrap(), Value::Int(6))
   }
 
   #[test]
   fn test_fibbonaci_recursive() {
-    let mut program = Program::from(Path::new("tests/samples/fibbonaci_recursive.rs"));
-    program.parse().unwrap();
+    let program =
+      Program::try_from(Path::new("tests/samples/fibbonaci_recursive.rs")).unwrap();
     assert_eq!(program.run().unwrap(), Value::Int(34))
   }
 }

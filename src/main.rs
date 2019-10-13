@@ -18,7 +18,7 @@ mod types;
 mod value;
 mod variable;
 
-use std::path::Path;
+use std::{convert::TryFrom, path::Path};
 
 // TODO: Remove this eventually
 #[allow(unused_imports)]
@@ -27,13 +27,15 @@ use program::Program;
 use type_checker::type_check_program;
 
 fn main() {
-  let mut program = Program::from(Path::new("input.rs"));
-  if let Err(e) = program.parse() {
-    println!("Errors");
-    println!("==============================");
-    println!("{}", e);
-    return;
-  }
+  let program = match Program::try_from(Path::new("input.rs")) {
+    Ok(program) => program,
+    Err(e) => {
+      println!("Errors");
+      println!("==============================");
+      println!("{}", e);
+      return;
+    }
+  };
   let type_res = type_check_program(&program);
   if let Ok(_) = type_res {
     println!(

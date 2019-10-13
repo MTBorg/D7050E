@@ -313,6 +313,7 @@ mod tests {
     .is_ok());
   }
 
+  #[test]
   pub fn test_operation_bool_int() {
     let func_dec = Func {
       name: "foo".to_string(),
