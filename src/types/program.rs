@@ -109,4 +109,11 @@ mod tests {
       Program::try_from(Path::new("tests/samples/fibbonaci_recursive.rs")).unwrap();
     assert_eq!(program.run().unwrap(), Value::Int(34))
   }
+
+  #[test]
+  fn test_nested_function_calls() {
+    let program =
+      Program::try_from(Path::new("tests/samples/nested_function_calls.rs")).unwrap();
+    assert_eq!(program.run().unwrap(), Value::Int(6))
+  }
 }
