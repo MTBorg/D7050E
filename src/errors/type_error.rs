@@ -1,9 +1,14 @@
-use crate::types::{func::Func, func_param::FuncParam, opcode::Opcode, _type::Type};
+use crate::types::{_type::Type, func::Func, func_param::FuncParam, opcode::Opcode};
 use std::error;
 
 #[derive(Debug)]
 pub enum TypeError {
   OperatorMissmatch {
+    op: Opcode,
+    type_left: Option<Type>,
+    type_right: Option<Type>,
+  },
+  InvalidOperator {
     op: Opcode,
     type_left: Option<Type>,
     type_right: Option<Type>,
@@ -74,9 +79,7 @@ impl std::fmt::Display for TypeError {
           None => "void",
         }
       ),
-      TypeError::InvalidNode => {
-        "This node does not evaluate to a type".to_string()
-      }
+      TypeError::InvalidNode => "This node does not evaluate to a type".to_string(),
       TypeError::LetMissmatch { r#type, expr_type } => format!(
         "Let statement expected type {} because of declaration but received {}",
         r#type.to_str(),
@@ -100,6 +103,22 @@ impl std::fmt::Display for TypeError {
         "Missing return statement in function {}, expected to return type {}",
         func_name,
         ret_type.to_str()
+      ),
+      TypeError::InvalidOperator {
+        op,
+        type_left,
+        type_right,
+      } => format!(
+        "Invalid operator {} for types {} and {}",
+        op.to_str(),
+        match type_left {
+          Some(r#type) => r#type.to_str(),
+          None =>  "void"
+        },
+        match type_right {
+          Some(r#type) => r#type.to_str(),
+          None =>  "void"
+        },
       ),
     };
     write!(f, "{}", message)

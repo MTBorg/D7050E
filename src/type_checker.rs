@@ -76,15 +76,48 @@ fn type_check(
       };
 
       return if type1 == type2 {
+        let expr_type = match type1.clone() {
+          Some(r#type) => r#type,
+          None => {
+            return Err(Box::new(TypeError::InvalidOperator {
+              op: (*op).clone(),
+              type_left: type1,
+              type_right: type2,
+            }))
+          }
+        };
         match op {
-          // This match is pretty ugly but is needed since arithmetic operations
-          // evaluate to the type of their operands where as logical operations always
-          // evaluate to booleans.
-          Opcode::Add | Opcode::Sub | Opcode::Mul | Opcode::Div => Ok(match type1 {
-            Some(r#type) => Some((r#type, false)),
-            None => None,
-          }),
-          _ => Ok(Some((Type::Bool, false))),
+          // This match is pretty ugly but is needed since arithmetic and 
+          // most relational  operations evaluate to the type of their operands
+          // where as logical operations always evaluate to booleans.
+          Opcode::Add
+          | Opcode::Sub
+          | Opcode::Mul
+          | Opcode::Div
+          | Opcode::Geq
+          | Opcode::Gneq
+          | Opcode::Lneq
+          | Opcode::Leq => match expr_type {
+            Type::Int => Ok(Some((Type::Int, false))),
+            _ => {
+              return Err(Box::new(TypeError::InvalidOperator {
+                op: (*op).clone(),
+                type_left: type1,
+                type_right: type2,
+              }))
+            }
+          },
+          Opcode::And | Opcode::Or => match expr_type {
+            Type::Bool => Ok(Some((Type::Bool, false))),
+            _ => {
+              return Err(Box::new(TypeError::InvalidOperator {
+                op: (*op).clone(),
+                type_left: type1,
+                type_right: type2,
+              }))
+            }
+          },
+          _ => Ok(Some((expr_type, false))),
         }
       } else {
         Err(Box::new(TypeError::OperatorMissmatch {
@@ -717,5 +750,60 @@ mod tests {
     context.push(Scope::from(func_dec.params.clone()));
     context.insert_type("a", Type::Int, false);
     assert!(type_check_tree(&func_dec, &funcs).is_ok());
+  }
+
+  #[test]
+  pub fn arithmetic_expr_with_two_booleans() {
+    let func_dec = Func {
+      name: "foo".to_string(),
+      params: vec![],
+      ret_type: None,
+      body_start: Node::Empty,
+    };
+    let mut context = Context::from(&func_dec);
+    let mut funcs: HashMap<String, Func> = HashMap::new();
+    funcs.insert("foo".to_string(), func_dec.clone());
+    context.push(Scope::from(func_dec.params.clone()));
+    assert!(!type_check(
+      &Node::Op(
+        Box::new(Node::Bool(true)),
+        Opcode::Add,
+        Box::new(Node::Bool(false))
+      ),
+      &mut context,
+      &funcs
+    )
+    .is_ok());
+  }
+
+  #[test]
+  pub fn arithmetic_expr_with_two_voids() {
+    let func_dec = Func {
+      name: "foo".to_string(),
+      params: vec![],
+      ret_type: None,
+      body_start: Node::Empty,
+    };
+    let func_dec_2 = Func {
+      name: "bar".to_string(),
+      params: vec![],
+      ret_type: None,
+      body_start: Node::Empty,
+    };
+    let mut context = Context::from(&func_dec);
+    let mut funcs: HashMap<String, Func> = HashMap::new();
+    funcs.insert("foo".to_string(), func_dec.clone());
+    funcs.insert("bar".to_string(), func_dec_2.clone());
+    context.push(Scope::from(func_dec.params.clone()));
+    assert!(!type_check(
+      &Node::Op(
+        Box::new(Node::FuncCall("bar".to_string(), vec!(), None)),
+        Opcode::Add,
+        Box::new(Node::FuncCall("bar".to_string(), vec!(), None))
+      ),
+      &mut context,
+      &funcs
+    )
+    .is_ok());
   }
 }
