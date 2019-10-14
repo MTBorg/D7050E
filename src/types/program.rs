@@ -57,8 +57,8 @@ impl Program {
 #[cfg(test)]
 mod tests {
   use super::{Path, Program, Value};
-  use std::convert::TryFrom;
   use crate::type_checker::type_check_program;
+  use std::convert::TryFrom;
 
   #[test]
   #[should_panic]
@@ -112,8 +112,8 @@ mod tests {
   fn test_fibbonaci_recursive() {
     let program =
       Program::try_from(Path::new("tests/samples/fibbonaci_recursive.rs")).unwrap();
-    if let Err(e) = type_check_program(&program){
-        panic!("{:?}", e);
+    if let Err(e) = type_check_program(&program) {
+      panic!("{:?}", e);
     }
     assert_eq!(program.run().unwrap(), Value::Int(34))
   }
