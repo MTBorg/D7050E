@@ -1,4 +1,4 @@
-use crate::types::{opcode::Opcode, _type::Type, value::Value};
+use crate::types::{_type::Type, opcode::Opcode, value::Value};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Node {
@@ -6,10 +6,14 @@ pub enum Node {
   Bool(bool),
   //Name
   Var(String),
-  // Variable, type, mutable, expression, next instruction
-  Let(String, Option<Type>, bool, Box<Node>, Option<Box<Node>>),
-  // Variable, expression, next instruction
-  Assign(String, Box<Node>, Option<Box<Node>>),
+  Let {
+    var: String,
+    _type: Option<Type>,
+    mutable: bool,
+    expr: Box<Node>,
+    next_instr: Option<Box<Node>>,
+  },
+  Assign{var: String, expr: Box<Node>, next_instr: Option<Box<Node>>},
   // Function, arguments, next instruction
   FuncCall(String, Vec<Node>, Option<Box<Node>>),
   // Expr, operation, Expr
@@ -32,9 +36,9 @@ impl Node {
   /// * `child` - The child node to attach.
   pub fn attach_right_most_child(&mut self, child: Node) {
     match *self {
-      Node::Let(.., ref mut right_most)
+      Node::Let{next_instr: ref mut right_most, ..}
+      | Node::Assign{next_instr: ref mut right_most, ..}
       | Node::FuncCall(.., ref mut right_most)
-      | Node::Assign(.., ref mut right_most)
       | Node::If(.., ref mut right_most)
       | Node::Return(.., ref mut right_most)
       | Node::Print(.., ref mut right_most)
@@ -53,13 +57,13 @@ impl Node {
 
   pub fn get_next_instruction(&self) -> Option<&Node> {
     match self {
-      Node::Let(.., ref right_most)
-      | Node::FuncCall(.., ref right_most)
-      | Node::Assign(.., ref right_most)
-      | Node::If(.., ref right_most)
-      | Node::Return(.., ref right_most)
-      | Node::Print(.., ref right_most)
-      | Node::DebugContext(ref right_most) => match right_most {
+      Node::Let{ref next_instr, ..}
+      | Node::Assign{ref next_instr, ..}
+      | Node::FuncCall(.., ref next_instr)
+      | Node::If(.., ref next_instr)
+      | Node::Return(.., ref next_instr)
+      | Node::Print(.., ref next_instr)
+      | Node::DebugContext(ref next_instr) => match next_instr {
         Some(node) => Some(&*node),
         _ => None,
       },

@@ -145,24 +145,24 @@ FuncDec: Func = {
 Assign: Box<Node> = {
 	<id:Identifier> "=" <expr:Expr> ";" =>
 		Box::new(
-			Node::Assign(
-			id,
-			expr,
-			None
-			)
+				Node::Assign{			
+					var: id,
+					expr: expr,
+					next_instr: None
+				}
 		)
 };
 
 Let: Box<Node> = {
 	"let" <mutable:"mut"?> <id:Identifier> <_type:(":" <Type>)?> "=" <expr:Expr> ";"=> 
 		Box::new(
-			Node::Let(
-				id,
-				_type,
-				if let Some(_) = mutable {true} else {false},
-				expr,
-				None
-			)
+				Node::Let{
+				var: id,
+				_type: _type,
+				mutable: if let Some(_) = mutable {true} else {false},
+				expr: expr,
+				next_instr: None
+				}
 		),
 };
 

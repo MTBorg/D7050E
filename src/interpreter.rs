@@ -123,15 +123,15 @@ pub fn eval(
       }
     }
     //TODO: Check type (second parameter)
-    Node::Let(id, _, _, expr, next_instr) => {
+    Node::Let{var, expr, next_instr, ..} => {
       let val = eval(expr, context, funcs).to_value().unwrap();
       context.insert_variable(Variable {
-        name: id.to_string(),
+        name: var.to_string(),
         value: val,
       });
       eval_next_instr!(next_instr, context, funcs)
     }
-    Node::Assign(id, expr, next_instr) => {
+    Node::Assign{ var: id, expr, next_instr } => {
       let val = match eval(expr, context, funcs).to_value() {
         Ok(val) => val,
         Err(e) => panic!("Invalid expression in assign statement: {}", e),

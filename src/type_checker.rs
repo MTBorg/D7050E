@@ -13,9 +13,7 @@ use std::collections::HashMap;
 type TypePair = (Type, bool);
 type BoxErr = Box<dyn std::error::Error>;
 
-pub fn type_check_program(
-  program: &Program,
-) -> Result<(), Vec<BoxErr>> {
+pub fn type_check_program(program: &Program) -> Result<(), Vec<BoxErr>> {
   let mut errors: Vec<BoxErr> = vec![];
 
   // Iterate over the values of the hashmap (i.e. the second element)
@@ -45,14 +43,18 @@ fn type_check_node(
       Some((r#type, mutable)) => Ok(Some(((*r#type).clone(), *mutable))),
       None => Err(Box::new(UnknownVarError { name: var.clone() })),
     },
-    Node::Assign(var, expr, _) => type_check_assign(var, expr, context, funcs),
+    Node::Assign { var, expr, .. } => type_check_assign(var, expr, context, funcs),
     Node::Op(e1, op, e2) => type_check_expr(e1, e2, op, context, funcs),
-    Node::Let(name, r#type, mutable, expr, _) => {
-      type_check_let(name, r#type, *mutable, expr, context, funcs)
-    }
+    Node::Let {
+      var,
+      _type: r#type,
+      mutable,
+      expr,
+      ..
+    } => type_check_let(var, r#type, *mutable, expr, context, funcs),
     Node::FuncCall(func, args, _) => type_check_func_call(func, args, context, funcs),
     Node::If(condition, _, _, _) => type_check_node(condition, context, funcs),
-    Node::Return(expr, _) => {type_check_return(expr, context, funcs)}
+    Node::Return(expr, _) => type_check_return(expr, context, funcs),
     _ => Err(Box::new(TypeError::InvalidNode {})),
   }
 }
@@ -735,7 +737,11 @@ mod tests {
     context.push(Scope::from(func_dec.params));
     context.insert_type("a", Type::Int, true);
     assert!(type_check_node(
-      &Node::Assign("a".to_string(), Box::new(Node::Number(3)), None),
+      &Node::Assign {
+        var: "a".to_string(),
+        expr: Box::new(Node::Number(3)),
+        next_instr: None
+      },
       &mut context,
       &funcs
     )
@@ -756,7 +762,11 @@ mod tests {
     context.push(Scope::from(func_dec.params));
     context.insert_type("a", Type::Int, false);
     assert!(!type_check_node(
-      &Node::Assign("a".to_string(), Box::new(Node::Number(3)), None),
+      &Node::Assign {
+        var: "a".to_string(),
+        expr: Box::new(Node::Number(3)),
+        next_instr: None
+      },
       &mut context,
       &funcs
     )
