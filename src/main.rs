@@ -45,7 +45,7 @@ fn main() {
       println!("- {}", error);
     }
   }
-  let compiler = Compiler::new();
+  let mut compiler = Compiler::new();
 
   let main = compiler
     .compile_program(&program)
