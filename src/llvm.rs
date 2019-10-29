@@ -76,7 +76,8 @@ impl Compiler {
           Opcode::Leq => left_val.const_int_compare(IntPredicate::SLE, right_val),
           Opcode::Gneq => left_val.const_int_compare(IntPredicate::SGT, right_val),
           Opcode::Lneq => left_val.const_int_compare(IntPredicate::SLT, right_val),
-          _ => unreachable!("Unimplemented operation {}", op.to_str()),
+          Opcode::And => left_val.const_and(right_val),
+          Opcode::Or => left_val.const_or(right_val),
         };
       }
       _ => unreachable!(),
