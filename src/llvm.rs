@@ -5,10 +5,9 @@ use inkwell::module::Module;
 use inkwell::OptimizationLevel;
 use std::collections::HashMap;
 
-use crate::interpreter::eval;
 use crate::types::{
-  context::Context as VarContext, func::Func, node::Node, program::Program, value::Value,
-  variable::Variable,
+  context::Context as VarContext, func::Func, node::Node, opcode::Opcode,
+  program::Program, variable::Variable,
 };
 use inkwell::values::{FunctionValue, IntValue, PointerValue};
 
@@ -53,10 +52,9 @@ impl Compiler {
   fn compile_expr(
     &mut self,
     expr: &Node,
-    mut var_context: &mut VarContext<Variable>,
+    var_context: &mut VarContext<Variable>,
     funcs: &HashMap<String, Func>,
   ) -> IntValue {
-    // let val = eval(expr, &mut var_context, funcs);
     match expr {
       Node::Number(n) => return self.context.i32_type().const_int(*n as u64, false),
       Node::Var(name) => {
@@ -66,18 +64,16 @@ impl Compiler {
       Node::Op(left, op, right) => {
         let left_val = self.compile_expr(left, var_context, funcs);
         let right_val = self.compile_expr(right, var_context, funcs);
-        return left_val.const_add(right_val);
+        return match op {
+          Opcode::Add => left_val.const_add(right_val),
+          Opcode::Sub => left_val.const_sub(right_val),
+          Opcode::Mul => left_val.const_mul(right_val),
+          Opcode::Div => left_val.const_signed_div(right_val),
+          _ => unreachable!("Unimplemented operation {}", op.to_str()),
+        };
       }
       _ => unreachable!(),
     };
-    // return match val {
-    //   Node::Number(n) => self.context.i32_type().const_int(n as u64, false),
-    //   Node::Var(name) => {
-    //     let var = self.get_variable(&name);
-    //     return self.builder.build_load(*var, &name).into_int_value();
-    //   }
-    //   _ => unreachable!(),
-    // };
   }
 
   pub fn compile_program(&mut self, program: &Program) -> Option<JitFunction<MainFunc>> {
