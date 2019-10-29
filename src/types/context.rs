@@ -1,4 +1,4 @@
-use crate::types::{func::Func, scope::Scope, _type::Type, variable::Variable};
+use crate::types::{_type::Type, func::Func, scope::Scope, variable::Variable};
 
 #[derive(Debug)]
 pub struct Context<T> {
@@ -33,7 +33,7 @@ impl Context<Variable> {
   pub fn get_variable(&self, var: &str) -> Option<&Variable> {
     self.get_element(var)
   }
-  
+
   // Wrapper for more readable code
   pub fn get_variable_mut(&mut self, var: &str) -> Option<&mut Variable> {
     self.get_element_mut(var)
