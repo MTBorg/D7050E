@@ -10,6 +10,7 @@ use crate::types::{
   program::Program, variable::Variable,
 };
 use inkwell::values::{FunctionValue, IntValue, PointerValue};
+use inkwell::IntPredicate;
 
 /// Convenience type alias for the `sum` function.
 ///
@@ -69,6 +70,12 @@ impl Compiler {
           Opcode::Sub => left_val.const_sub(right_val),
           Opcode::Mul => left_val.const_mul(right_val),
           Opcode::Div => left_val.const_signed_div(right_val),
+          Opcode::Eq => left_val.const_int_compare(IntPredicate::EQ, right_val),
+          Opcode::Neq => left_val.const_int_compare(IntPredicate::NE, right_val),
+          Opcode::Geq => left_val.const_int_compare(IntPredicate::SGE, right_val),
+          Opcode::Leq => left_val.const_int_compare(IntPredicate::SLE, right_val),
+          Opcode::Gneq => left_val.const_int_compare(IntPredicate::SGT, right_val),
+          Opcode::Lneq => left_val.const_int_compare(IntPredicate::SLT, right_val),
           _ => unreachable!("Unimplemented operation {}", op.to_str()),
         };
       }
