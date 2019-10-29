@@ -1,61 +1,98 @@
 use inkwell::builder::Builder;
 use inkwell::context::Context;
-use inkwell::execution_engine::{ExecutionEngine, JitFunction};
+use inkwell::execution_engine::JitFunction;
 use inkwell::module::Module;
-use inkwell::targets::{InitializationConfig, Target};
 use inkwell::OptimizationLevel;
-use std::error::Error;
+use std::collections::HashMap;
+
+use crate::interpreter::eval;
+use crate::types::{
+  context::Context as VarContext, func::Func, node::Node, program::Program,
+  variable::Variable,
+};
+use inkwell::values::IntValue;
 
 /// Convenience type alias for the `sum` function.
 ///
 /// Calling this is innately `unsafe` because there's no guarantee it doesn't
 /// do `unsafe` operations internally.
-type SumFunc = unsafe extern "C" fn(u64, u64, u64) -> u64;
+type MainFunc = unsafe extern "C" fn() -> i32;
 
-fn main() -> Result<(), Box<Error>> {
-  let context = Context::create();
-  let module = context.create_module("sum");
-  let builder = context.create_builder();
-  let execution_engine = module.create_jit_execution_engine(OptimizationLevel::None)?;
-
-  let sum = jit_compile_sum(&context, &module, &builder, &execution_engine)
-    .ok_or("Unable to JIT compile `sum`")?;
-
-  let x = 1u64;
-  let y = 2u64;
-  let z = 3u64;
-
-  unsafe {
-    println!("{} + {} + {} = {}", x, y, z, sum.call(x, y, z));
-    assert_eq!(sum.call(x, y, z), x + y + z);
-  }
-
-  Ok(())
+/// Compiler holds the LLVM state for the compilation
+pub struct Compiler {
+  pub context: Context,
+  pub builder: Builder,
+  pub module: Module,
+  // pub fn_value_opt: Option<FunctionValue>,
+  pub variables: HashMap<String, Variable>,
 }
 
-fn jit_compile_sum(
-  context: &Context,
-  module: &Module,
-  builder: &Builder,
-  execution_engine: &ExecutionEngine,
-) -> Option<JitFunction<SumFunc>> {
-  let i64_type = context.i64_type();
-  let fn_type =
-    i64_type.fn_type(&[i64_type.into(), i64_type.into(), i64_type.into()], false);
+impl Compiler {
+  pub fn new() -> Self {
+    let context = Context::create();
+    Compiler {
+      builder: context.create_builder(),
+      module: context.create_module("main"),
+      context: context,
+      variables: HashMap::new(),
+    }
+  }
 
-  let function = module.add_function("sum", fn_type, None);
-  let basic_block = context.append_basic_block(&function, "entry");
+  fn compile_expr(
+    &self,
+    expr: &Node,
+    context: &Context,
+    mut var_context: &mut VarContext<Variable>,
+    funcs: &HashMap<String, Func>,
+  ) -> IntValue {
+    let val = eval(expr, &mut var_context, funcs);
+    return match val {
+      Node::Number(n) => context.i32_type().const_int(n as u64, false),
+      _ => unreachable!(),
+    };
+  }
 
-  builder.position_at_end(&basic_block);
+  pub fn compile_program(&self, program: &Program) -> Option<JitFunction<MainFunc>> {
+    let execution_engine = self
+      .module
+      .create_jit_execution_engine(OptimizationLevel::None)
+      .unwrap();
+    let i32_type = self.context.i64_type();
+    let fn_type = i32_type.fn_type(&[], false);
 
-  let x = function.get_nth_param(0)?.into_int_value();
-  let y = function.get_nth_param(1)?.into_int_value();
-  let z = function.get_nth_param(2)?.into_int_value();
+    for (_, func) in program.funcs.iter() {
+      let function = self.module.add_function(&func.name, fn_type, None);
+      let basic_block = self.context.append_basic_block(&function, "entry");
+      self.builder.position_at_end(&basic_block);
+      self.compile_func(func, &program.funcs);
+    }
 
-  let sum = builder.build_int_add(x, y, "sum");
-  let sum = builder.build_int_add(sum, z, "sum");
+    self
+      .builder
+      .build_return(Some(&i32_type.const_int(0, false)));
 
-  builder.build_return(Some(&sum));
+    unsafe { execution_engine.get_function("main").ok() }
+  }
 
-  unsafe { execution_engine.get_function("sum").ok() }
+  fn compile_func(&self, func: &Func, funcs: &HashMap<String, Func>) {
+    self.compile_node(&func.body_start, &mut VarContext::from(func), funcs);
+  }
+
+  fn compile_node(
+    &self,
+    node: &Node,
+    var_context: &mut VarContext<Variable>,
+    funcs: &HashMap<String, Func>,
+  ) {
+    match node {
+      Node::Return(expr, _) => {
+        let expr_val = self.compile_expr(expr, &self.context, var_context, funcs);
+        self.builder.build_return(Some(&expr_val));
+      }
+      // Node::Let(id, _, _, expr, _) => {
+      //   let expr_val = self.compile_expr(expr, &self.context, var_context, funcs);
+      // }
+      _ => unreachable!(),
+    };
+  }
 }
