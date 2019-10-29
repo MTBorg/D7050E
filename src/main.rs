@@ -9,10 +9,14 @@ mod parsing;
 mod type_checker;
 mod types;
 
-use std::{convert::TryFrom, path::Path};
+use std::{collections::HashMap, convert::TryFrom, path::Path};
 
+use interpreter::eval;
 use type_checker::type_check_program;
-use types::{func::Func, node::Node, program::Program};
+use types::{
+  context::Context as VarContext, func::Func, node::Node, program::Program,
+  variable::Variable,
+};
 
 // fn main() {
 //   let program = match Program::try_from(Path::new("input.rs")) {
@@ -50,6 +54,7 @@ use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
 use inkwell::module::Module;
 use inkwell::targets::{InitializationConfig, Target};
+use inkwell::values::IntValue;
 use inkwell::OptimizationLevel;
 use std::error::Error;
 
@@ -68,21 +73,21 @@ fn main() {
       return;
     }
   };
-  let type_res = type_check_program(&program);
-  if let Ok(_) = type_res {
-    println!(
-      "Interpreter finished with exit code {}",
-      match program.run() {
-        Some(value) => value.to_string(),
-        None => 0.to_string(),
-      }
-    )
-  } else if let Err(errors) = type_res {
-    print_error_header();
-    for error in errors.iter() {
-      println!("- {}", error);
-    }
-  }
+  // let type_res = type_check_program(&program);
+  // if let Ok(_) = type_res {
+  //   println!(
+  //     "Interpreter finished with exit code {}",
+  //     match program.run() {
+  //       Some(value) => value.to_string(),
+  //       None => 0.to_string(),
+  //     }
+  //   )
+  // } else if let Err(errors) = type_res {
+  //   print_error_header();
+  //   for error in errors.iter() {
+  //     println!("- {}", error);
+  //   }
+  // }
 
   let context = Context::create();
   let module = context.create_module("main");
@@ -107,13 +112,16 @@ fn jit_compile_node(
   builder: &Builder,
   execution_engine: &ExecutionEngine,
   node: &Node,
+  var_context: &mut VarContext<Variable>,
+  funcs: &HashMap<String, Func>,
 ) {
   match node {
-    Node::Return(_, _) => {
-      builder.build_return(Some(&context.i32_type().const_int(4, false)));
+    Node::Return(expr, _) => {
+      let expr_val = jit_compile_expr(expr, context, var_context, funcs);
+      builder.build_return(Some(&expr_val));
     }
     _ => unreachable!(),
-  }
+  };
 }
 
 fn jit_compile_func(
@@ -122,8 +130,30 @@ fn jit_compile_func(
   builder: &Builder,
   execution_engine: &ExecutionEngine,
   func: &Func,
+  funcs: &HashMap<String, Func>,
 ) {
-  jit_compile_node(context, module, builder, execution_engine, &func.body_start);
+  jit_compile_node(
+    context,
+    module,
+    builder,
+    execution_engine,
+    &func.body_start,
+    &mut VarContext::from(func),
+    funcs,
+  );
+}
+
+fn jit_compile_expr(
+  expr: &Node,
+  context: &Context,
+  mut var_context: &mut VarContext<Variable>,
+  funcs: &HashMap<String, Func>,
+) -> IntValue {
+  let val = eval(expr, &mut var_context, funcs);
+  return match val {
+    Node::Number(n) => context.i32_type().const_int(n as u64, false),
+    _ => unreachable!(),
+  };
 }
 fn jit_compile_program(
   context: &Context,
@@ -139,17 +169,15 @@ fn jit_compile_program(
     let function = module.add_function(&func.name, fn_type, None);
     let basic_block = context.append_basic_block(&function, "entry");
     builder.position_at_end(&basic_block);
-    jit_compile_func(context, module, builder, execution_engine, func);
+    jit_compile_func(
+      context,
+      module,
+      builder,
+      execution_engine,
+      func,
+      &program.funcs,
+    );
   }
-
-  // let sum = builder.build_int_add(
-  //   context.i32_type().const_int(1, false),
-  //   context.i32_type().const_int(1, false),
-  //   "sum",
-  // );
-
-  // builder.build_return(Some(&sum));
-  //
 
   builder.build_return(Some(&i32_type.const_int(0, false)));
 
