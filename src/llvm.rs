@@ -104,7 +104,7 @@ impl Compiler {
     }
 
     let temp = unsafe { execution_engine.get_function("main").ok() };
-    self.module.print_to_stderr();
+    // self.module.print_to_stderr();
     return temp;
   }
 
@@ -456,5 +456,21 @@ mod tests {
     };
 
     assert_eq!(result, 0);
+  }
+
+  #[test]
+  fn test_variable_int_assignment() {
+    let program =
+      Program::try_from(Path::new("tests/samples/variable_int_assignment.rs")).unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 4);
   }
 }
