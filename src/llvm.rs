@@ -241,8 +241,11 @@ impl Compiler {
     func: &FunctionValue,
     funcs: &HashMap<String, Func>,
   ) {
-    let mut next_node = Some(body_start);
     self.builder.position_at_end(&block);
+    if let Node::Empty = body_start {
+      return;
+    }
+    let mut next_node = Some(body_start);
     while match next_node {
       Some(_) => true,
       _ => false,
