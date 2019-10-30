@@ -113,18 +113,13 @@ impl Compiler {
         },
         None => self.context.void_type().fn_type(&[], false),
       };
-      self.module.add_function(&func.name, fn_type, None);
+      let function = self.module.add_function(&func.name, fn_type, None);
+      self.context.append_basic_block(&function, "entry");
     }
 
     for (_, func) in program.funcs.iter() {
       let function = self.module.get_function(&func.name).unwrap();
-      self.compile_func(
-        &func.name,
-        &function,
-        &func,
-        &func.body_start,
-        &program.funcs,
-      );
+      self.compile_func(&function, &func, &func.body_start, &program.funcs);
     }
 
     let temp = unsafe { execution_engine.get_function("main").ok() };
@@ -134,14 +129,12 @@ impl Compiler {
 
   fn compile_func(
     &mut self,
-    name: &str,
     function: &FunctionValue,
     func_dec: &Func,
     func_body_start: &Node,
     funcs: &HashMap<String, Func>,
   ) {
-    let basic_block = self.context.append_basic_block(&function, "entry");
-    // self.funcs.insert(func.name.to_string(), function);
+    let basic_block = function.get_first_basic_block().unwrap();
     self.compile_block(func_body_start, &basic_block, function, funcs);
 
     //If the function is of type void we still need to make sure to build a return
@@ -160,9 +153,9 @@ impl Compiler {
   fn create_entry_block_alloca(&mut self, function: &str, name: &str) -> PointerValue {
     let builder = self.context.create_builder();
 
-    let entry = match self.funcs.get(function) {
+    let entry = match self.module.get_function(function) {
       Some(func) => func.get_first_basic_block().unwrap(),
-      None => panic!("Function not found"),
+      None => unreachable!("Function {} not found", function),
     };
 
     match entry.get_first_instruction() {
@@ -186,8 +179,9 @@ impl Compiler {
         self.builder.build_return(Some(&expr_val));
       }
       Node::Let(id, _, _, expr, _) => {
+        let alloca =
+          self.create_entry_block_alloca(func.get_name().to_str().unwrap(), id);
         let expr_val = self.compile_expr(expr, funcs);
-        let alloca = self.create_entry_block_alloca("main", id);
         self.builder.build_store(alloca, expr_val);
       }
       Node::If(condition, then_body, else_body, _) => {
@@ -204,7 +198,6 @@ impl Compiler {
         self.builder.build_store(*variable, expr);
       }
       Node::FuncCall(func_name, args, _) => {
-        println!("{:#?}", self.module.get_last_function());
         let func = match self.module.get_function(func_name) {
           Some(func) => func,
           None => unreachable!("Could not find function {}", func_name),
