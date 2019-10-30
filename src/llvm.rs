@@ -334,9 +334,10 @@ mod tests {
   }
 
   #[test]
-  fn test_variable_in_expression() {
+  fn test_variable_in_expression_add() {
     let program =
-      Program::try_from(Path::new("tests/samples/variable_in_expression.rs")).unwrap();
+      Program::try_from(Path::new("tests/samples/variable_in_expression_add.rs"))
+        .unwrap();
 
     let mut compiler = Compiler::new();
 
@@ -347,6 +348,55 @@ mod tests {
     };
 
     assert_eq!(result, 5);
+  }
+
+  #[test]
+  fn test_variable_in_expression_sub() {
+    let program =
+      Program::try_from(Path::new("tests/samples/variable_in_expression_sub.rs"))
+        .unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 5);
+  }
+  #[test]
+  fn test_variable_in_expression_mul() {
+    let program =
+      Program::try_from(Path::new("tests/samples/variable_in_expression_mul.rs"))
+        .unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 6);
+  }
+  #[test]
+  fn test_variable_in_expression_div() {
+    let program =
+      Program::try_from(Path::new("tests/samples/variable_in_expression_div.rs"))
+        .unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 2);
   }
 
   #[test]
