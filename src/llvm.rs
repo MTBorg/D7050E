@@ -497,4 +497,54 @@ mod tests {
 
     assert_eq!(result, 4);
   }
+
+  #[test]
+  fn test_function_call_return_int() {
+    let program =
+      Program::try_from(Path::new("tests/samples/function_call_return_int.rs")).unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 5);
+  }
+
+  #[test]
+  fn test_function_call_return_variable() {
+    let program =
+      Program::try_from(Path::new("tests/samples/function_call_return_variable.rs"))
+        .unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 7);
+  }
+
+  #[test]
+  fn test_variable_function_assignment() {
+    let program =
+      Program::try_from(Path::new("tests/samples/variable_function_assignment.rs"))
+        .unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 24);
+  }
 }
