@@ -109,7 +109,7 @@ impl Compiler {
     // let basic_block = self.context.append_basic_block(&function, "entry");
     self.funcs.insert(func.name.to_string(), function);
     // self.builder.position_at_end(&basic_block);
-    self.compile_block(&Some(func.body_start.clone()), &func.name, &function, funcs);
+    self.compile_block(&func.body_start, &func.name, &function, funcs);
   }
 
   /// Creates a new stack allocation instruction in the entry block of the function.
@@ -235,12 +235,12 @@ impl Compiler {
 
   fn compile_block(
     &mut self,
-    body_start: &Option<Node>,
+    body_start: &Node,
     name: &str,
     func: &FunctionValue,
     funcs: &HashMap<String, Func>,
   ) -> BasicBlock {
-    let mut next_node = (*body_start).clone();
+    let mut next_node = Some(body_start);
     let block = self.context.append_basic_block(func, name);
     self.builder.position_at_end(&block);
     while match next_node {
@@ -248,10 +248,7 @@ impl Compiler {
       _ => false,
     } {
       self.compile_node(&next_node.clone().unwrap(), func, funcs);
-      next_node = match next_node.unwrap().get_next_instruction() {
-        Some(node) => Some((*node).clone()),
-        None => None,
-      };
+      next_node = next_node.unwrap().get_next_instruction();
     }
     // self.builder.position_at_end(&block);
 
