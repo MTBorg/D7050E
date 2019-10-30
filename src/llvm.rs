@@ -5,7 +5,9 @@ use inkwell::module::Module;
 use inkwell::OptimizationLevel;
 use std::collections::HashMap;
 
-use crate::types::{func::Func, node::Node, opcode::Opcode, program::Program};
+use crate::types::{
+  _type::Type, func::Func, node::Node, opcode::Opcode, program::Program,
+};
 use inkwell::basic_block::BasicBlock;
 use inkwell::values::{FunctionValue, IntValue, PointerValue};
 use inkwell::IntPredicate;
@@ -100,8 +102,13 @@ impl Compiler {
   }
 
   fn compile_func(&mut self, func: &Func, funcs: &HashMap<String, Func>) {
-    let i32_type = self.context.i32_type();
-    let fn_type = i32_type.fn_type(&[], false);
+    let fn_type = match func.ret_type {
+      Some(ref r#type) => match r#type {
+        Type::Int => self.context.i32_type().fn_type(&[], false),
+        Type::Bool => self.context.bool_type().fn_type(&[], false),
+      },
+      None => self.context.void_type().fn_type(&[], false),
+    };
     let function = self.module.add_function(&func.name, fn_type, None);
     let basic_block = self.context.append_basic_block(&function, "entry");
     self.funcs.insert(func.name.to_string(), function);
