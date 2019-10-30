@@ -89,6 +89,11 @@ impl Compiler {
           Opcode::Or => left_val.const_or(right_val),
         };
       }
+      Node::FuncCall(func_name, args, _) => {
+        let function = self.module.get_function(func_name).unwrap();
+        let call = self.builder.build_call(function, &[], func_name);
+        return *call.try_as_basic_value().left().unwrap().as_int_value();
+      }
       _ => unreachable!(),
     };
   }
@@ -99,8 +104,27 @@ impl Compiler {
       .create_jit_execution_engine(OptimizationLevel::None)
       .unwrap();
 
+    // Add all functions to the module before compiling
     for (_, func) in program.funcs.iter() {
-      self.compile_func(func, &program.funcs);
+      let fn_type = match func.ret_type {
+        Some(ref r#type) => match r#type {
+          Type::Int => self.context.i32_type().fn_type(&[], false),
+          Type::Bool => self.context.bool_type().fn_type(&[], false),
+        },
+        None => self.context.void_type().fn_type(&[], false),
+      };
+      self.module.add_function(&func.name, fn_type, None);
+    }
+
+    for (_, func) in program.funcs.iter() {
+      let function = self.module.get_function(&func.name).unwrap();
+      self.compile_func(
+        &func.name,
+        &function,
+        &func,
+        &func.body_start,
+        &program.funcs,
+      );
     }
 
     let temp = unsafe { execution_engine.get_function("main").ok() };
@@ -108,24 +132,23 @@ impl Compiler {
     return temp;
   }
 
-  fn compile_func(&mut self, func: &Func, funcs: &HashMap<String, Func>) {
-    let fn_type = match func.ret_type {
-      Some(ref r#type) => match r#type {
-        Type::Int => self.context.i32_type().fn_type(&[], false),
-        Type::Bool => self.context.bool_type().fn_type(&[], false),
-      },
-      None => self.context.void_type().fn_type(&[], false),
-    };
-    let function = self.module.add_function(&func.name, fn_type, None);
+  fn compile_func(
+    &mut self,
+    name: &str,
+    function: &FunctionValue,
+    func_dec: &Func,
+    func_body_start: &Node,
+    funcs: &HashMap<String, Func>,
+  ) {
     let basic_block = self.context.append_basic_block(&function, "entry");
-    self.funcs.insert(func.name.to_string(), function);
-    self.compile_block(&func.body_start, &basic_block, &function, funcs);
+    // self.funcs.insert(func.name.to_string(), function);
+    self.compile_block(func_body_start, &basic_block, function, funcs);
 
     //If the function is of type void we still need to make sure to build a return
-    if let None = func.ret_type {
+    if let None = func_dec.ret_type {
       let default_return_value = self.context.i32_type().const_int(0, false);
       //Main should always return 0
-      self.builder.build_return(if func.name == "main" {
+      self.builder.build_return(if func_dec.name == "main" {
         Some(&default_return_value)
       } else {
         None
@@ -179,6 +202,14 @@ impl Compiler {
         let variable = self.get_variable(variable);
         let expr = self.compile_expr(expr, funcs);
         self.builder.build_store(*variable, expr);
+      }
+      Node::FuncCall(func_name, args, _) => {
+        println!("{:#?}", self.module.get_last_function());
+        let func = match self.module.get_function(func_name) {
+          Some(func) => func,
+          None => unreachable!("Could not find function {}", func_name),
+        };
+        self.builder.build_call(func, &[], func_name);
       }
       Node::Empty => (),
       _ => unreachable!("{:#?}", node),
