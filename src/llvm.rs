@@ -75,7 +75,12 @@ impl Compiler {
           }
           // Opcode::Eq => left_val.const_add(right_val),
           // Opcode::Eq => self.context.i64_type().const_int(0, false),
-          Opcode::Neq => left_val.const_int_compare(IntPredicate::NE, right_val),
+          // Opcode::Neq => left_val.const_int_compare(IntPredicate::NE, right_val),
+          Opcode::Neq => {
+            self
+              .builder
+              .build_int_compare(IntPredicate::NE, left_val, right_val, "neq")
+          }
           Opcode::Geq => left_val.const_int_compare(IntPredicate::SGE, right_val),
           Opcode::Leq => left_val.const_int_compare(IntPredicate::SLE, right_val),
           Opcode::Gneq => left_val.const_int_compare(IntPredicate::SGT, right_val),
@@ -414,5 +419,37 @@ mod tests {
     };
 
     assert_eq!(result, 3);
+  }
+
+  #[test]
+  fn test_relop_neq_true() {
+    let program =
+      Program::try_from(Path::new("tests/samples/relop_neq_true.rs")).unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_ne!(result, 0);
+  }
+
+  #[test]
+  fn test_relop_neq_false() {
+    let program =
+      Program::try_from(Path::new("tests/samples/relop_neq_false.rs")).unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 0);
   }
 }
