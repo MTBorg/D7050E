@@ -61,10 +61,12 @@ impl Compiler {
         let left_val = self.compile_expr(left, funcs);
         let right_val = self.compile_expr(right, funcs);
         return match op {
-          Opcode::Add => left_val.const_add(right_val),
-          Opcode::Sub => left_val.const_sub(right_val),
-          Opcode::Mul => left_val.const_mul(right_val),
-          Opcode::Div => left_val.const_signed_div(right_val),
+          Opcode::Add => self.builder.build_int_add(left_val, right_val, "add"),
+          Opcode::Sub => self.builder.build_int_sub(left_val, right_val, "sub"),
+          Opcode::Mul => self.builder.build_int_mul(left_val, right_val, "mul"),
+          Opcode::Div => self
+            .builder
+            .build_int_signed_div(left_val, right_val, "div"),
           // Opcode::Eq => left_val.const_int_compare(IntPredicate::NE, right_val),
           Opcode::Eq => {
             self
