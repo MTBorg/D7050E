@@ -93,40 +93,23 @@ impl Compiler {
       .create_jit_execution_engine(OptimizationLevel::None)
       .unwrap();
 
-    let i32_type = self.context.i64_type();
     for (_, func) in program.funcs.iter() {
       self.compile_func(func, &program.funcs);
     }
 
-    println!("building");
-    self
-      .builder
-      .build_return(Some(&i32_type.const_int(0, false)));
-    println!("done building");
-
-    println!("before running");
     let temp = unsafe { execution_engine.get_function("main").ok() };
-    println!("after running");
+    self.module.print_to_stderr();
     return temp;
   }
 
   fn compile_func(&mut self, func: &Func, funcs: &HashMap<String, Func>) {
-    let i32_type = self.context.i64_type();
+    let i32_type = self.context.i32_type();
     let fn_type = i32_type.fn_type(&[], false);
     let function = self.module.add_function(&func.name, fn_type, None);
     // let basic_block = self.context.append_basic_block(&function, "entry");
     self.funcs.insert(func.name.to_string(), function);
     // self.builder.position_at_end(&basic_block);
     self.compile_block(&Some(func.body_start.clone()), &func.name, &function, funcs);
-    // let mut next_node = Some(&func.body_start);
-    // let mut context = VarContext::from(func);
-    // while match next_node {
-    //   Some(_) => true,
-    //   _ => false,
-    // } {
-    //   self.compile_node(&next_node.unwrap(), &function, funcs);
-    //   next_node = next_node.unwrap().get_next_instruction();
-    // }
   }
 
   /// Creates a new stack allocation instruction in the entry block of the function.
@@ -166,67 +149,87 @@ impl Compiler {
         self.builder.build_store(alloca, expr_val);
       }
       Node::If(condition, then_body, else_body, _) => {
-        let parent = func;
-
-        let cond = self.compile_expr(condition, funcs);
-
-        // build branch
-        let then_bb = self.context.append_basic_block(&parent, "then");
-        let else_bb = self.context.append_basic_block(&parent, "else");
-        let cont_bb = self.context.append_basic_block(&parent, "ifcont");
-
-        self
-          .builder
-          .build_conditional_branch(cond, &then_bb, &else_bb);
-
-        // build then block
-        self.builder.position_at_end(&then_bb);
-        let then_val = self.compile_node(then_body, func, funcs);
-        self.builder.build_unconditional_branch(&cont_bb);
-
-        let then_bb = self.builder.get_insert_block().unwrap();
-
-        // build else block
-        self.builder.position_at_end(&else_bb);
-        let else_val = self.compile_node(
-          match else_body {
-            Some(body) => &**body,
-            _ => panic!(),
-          },
-          func,
-          funcs,
-        );
-        self.builder.build_unconditional_branch(&cont_bb);
-
-        let else_bb = self.builder.get_insert_block().unwrap();
-
-        // emit merge block
-        self.builder.position_at_end(&cont_bb);
-
-        let phi = self.builder.build_phi(self.context.f64_type(), "iftmp");
-
-        // phi.add_incoming(&[(&then_val, &then_bb), (&else_val, &else_bb)]);
-
-        // Ok(phi.as_basic_value().into_float_value());
-
-        // println!("if");
-        // let then_block =
-        //   &self.compile_block(&Some((**then_body).clone()), "then", func, funcs);
-        // let else_body = match else_body {
-        //   Some(body) => Some((**body).clone()),
-        //   None => None,
-        // };
-        // let else_block = &self.compile_block(&else_body, "else", func, funcs);
-        // let expr = self.compile_expr(condition, funcs);
-        // println!("test: {:#?}", expr.print_to_string());
-        // println!("before");
-        // self
-        //   .builder
-        //   .build_conditional_branch(expr, then_block, else_block);
-        // println!("after");
+        match else_body {
+          Some(else_body) => {
+            self.compile_if_else(condition, then_body, else_body, func, funcs)
+          }
+          None => self.compile_if(condition, then_body, func, funcs),
+        };
       }
       _ => unreachable!("{:#?}", node),
     };
+  }
+
+  fn compile_if_else(
+    &mut self,
+    condition: &Node,
+    then_body: &Node,
+    else_body: &Node,
+    func: &FunctionValue,
+    funcs: &HashMap<String, Func>,
+  ) {
+    let cond = self.compile_expr(condition, funcs);
+
+    // build branch
+    let then_block = self.context.append_basic_block(&func, "then");
+    let else_block = self.context.append_basic_block(&func, "else");
+    let cont_block = self.context.append_basic_block(&func, "cont");
+
+    self
+      .builder
+      .build_conditional_branch(cond, &then_block, &else_block);
+
+    // build then block
+    self.builder.position_at_end(&then_block);
+    self.compile_node(then_body, func, funcs);
+    self.builder.build_unconditional_branch(&cont_block);
+
+    // build else block
+    self.builder.position_at_end(&else_block);
+    self.compile_node(else_body, func, funcs);
+    self.builder.build_unconditional_branch(&cont_block);
+
+    // emit merge block
+    self.builder.position_at_end(&cont_block);
+
+    // let phi = self.builder.build_phi(self.context.i32_type(), "iftmp");
+
+    // phi.add_incoming(&[(&then_val, &then_bb), (&else_val, &else_bb)]);
+
+    // Ok(phi.as_basic_value().into_float_value());
+  }
+  fn compile_if(
+    &mut self,
+    condition: &Node,
+    then_body: &Node,
+    func: &FunctionValue,
+    funcs: &HashMap<String, Func>,
+  ) {
+    let parent = func;
+
+    let cond = self.compile_expr(condition, funcs);
+
+    // build branch
+    let then_block = self.context.append_basic_block(&parent, "then");
+    let cont_block = self.context.append_basic_block(&parent, "cont");
+
+    self
+      .builder
+      .build_conditional_branch(cond, &then_block, &cont_block);
+
+    // build then block
+    self.builder.position_at_end(&then_block);
+    self.compile_node(then_body, func, funcs);
+    self.builder.build_unconditional_branch(&cont_block);
+
+    // let then_bb = self.builder.get_insert_block().unwrap();
+
+    self.builder.build_unconditional_branch(&cont_block);
+
+    // emit merge block
+    self.builder.position_at_end(&cont_block);
+
+    // let phi = self.builder.build_phi(self.context.i32_type(), "iftmp");
   }
 
   fn compile_block(
@@ -249,7 +252,7 @@ impl Compiler {
         None => None,
       };
     }
-    self.builder.position_at_end(&block);
+    // self.builder.position_at_end(&block);
 
     println!("Returning");
     return block;
