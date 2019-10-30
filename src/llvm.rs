@@ -156,6 +156,7 @@ impl Compiler {
           None => self.compile_if(condition, then_body, func, funcs),
         };
       }
+      Node::Empty => (),
       _ => unreachable!("{:#?}", node),
     };
   }
