@@ -50,7 +50,7 @@ impl Compiler {
     }
   }
 
-  fn compile_expr(&mut self, expr: &Node, funcs: &HashMap<String, Func>) -> IntValue {
+  fn compile_expr(&self, expr: &Node, funcs: &HashMap<String, Func>) -> IntValue {
     match expr {
       Node::Number(n) => return self.context.i32_type().const_int(*n as u64, false),
       Node::Var(name) => {
@@ -174,6 +174,11 @@ impl Compiler {
           }
           None => self.compile_if(condition, then_body, func, funcs),
         };
+      }
+      Node::Assign(variable, expr, _) => {
+        let variable = self.get_variable(variable);
+        let expr = self.compile_expr(expr, funcs);
+        self.builder.build_store(*variable, expr);
       }
       Node::Empty => (),
       _ => unreachable!("{:#?}", node),
