@@ -112,7 +112,6 @@ impl Compiler {
     let function = self.module.add_function(&func.name, fn_type, None);
     let basic_block = self.context.append_basic_block(&function, "entry");
     self.funcs.insert(func.name.to_string(), function);
-    // self.builder.position_at_end(&basic_block);
     self.compile_block(&func.body_start, &basic_block, &function, funcs);
 
     //If the function is of type void we still need to make sure to build a return
@@ -263,5 +262,72 @@ impl Compiler {
       self.compile_node(&next_node.clone().unwrap(), func, funcs);
       next_node = next_node.unwrap().get_next_instruction();
     }
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use crate::types::program::Program;
+  use std::{convert::TryFrom, path::Path};
+
+  #[test]
+  fn test_if_statement_true() {
+    let program = Program::try_from(Path::new("tests/samples/if_a_eq_2.rs")).unwrap();
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 11);
+  }
+
+  #[test]
+  fn test_if_empty_body() {
+    let program = Program::try_from(Path::new("tests/samples/if_empty_body.rs")).unwrap();
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 6);
+  }
+
+  #[test]
+  fn test_if_else_into_else() {
+    let program =
+      Program::try_from(Path::new("tests/samples/if_else_into_else.rs")).unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 11);
+  }
+
+  #[test]
+  fn test_empty_function() {
+    let program =
+      Program::try_from(Path::new("tests/samples/empty_function.rs")).unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 0);
   }
 }
