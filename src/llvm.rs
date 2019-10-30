@@ -9,7 +9,8 @@ use crate::types::{
   _type::Type, func::Func, node::Node, opcode::Opcode, program::Program,
 };
 use inkwell::basic_block::BasicBlock;
-use inkwell::values::{FunctionValue, IntValue, PointerValue};
+use inkwell::types::BasicTypeEnum;
+use inkwell::values::{BasicValueEnum, FunctionValue, IntValue, PointerValue};
 use inkwell::IntPredicate;
 
 /// Convenience type alias for the `sum` function.
@@ -91,7 +92,18 @@ impl Compiler {
       }
       Node::FuncCall(func_name, args, _) => {
         let function = self.module.get_function(func_name).unwrap();
-        let call = self.builder.build_call(function, &[], func_name);
+        let args: Vec<BasicValueEnum> = args
+          .iter()
+          .map(|a| self.compile_expr(a, funcs).into())
+          .collect();
+        for arg in args.iter() {
+          println!(
+            "arg: {}",
+            arg.as_int_value().print_to_string().to_str().unwrap()
+          );
+        }
+        println!("{:#?}", args);
+        let call = self.builder.build_call(function, &args, func_name);
         return *call.try_as_basic_value().left().unwrap().as_int_value();
       }
       _ => unreachable!(),
@@ -106,13 +118,23 @@ impl Compiler {
 
     // Add all functions to the module before compiling
     for (_, func) in program.funcs.iter() {
+      let args: Vec<BasicTypeEnum> = func
+        .params
+        .iter()
+        .map(|param| match param._type {
+          Type::Int => self.context.i32_type().into(),
+          Type::Bool => self.context.bool_type().into(),
+        })
+        .collect();
       let fn_type = match func.ret_type {
         Some(ref r#type) => match r#type {
-          Type::Int => self.context.i32_type().fn_type(&[], false),
-          Type::Bool => self.context.bool_type().fn_type(&[], false),
+          Type::Int => self.context.i32_type().fn_type(&args, false),
+          Type::Bool => self.context.bool_type().fn_type(&args, false),
         },
+
         None => self.context.void_type().fn_type(&[], false),
       };
+      println!("{:#?}", args);
       let function = self.module.add_function(&func.name, fn_type, None);
       self.context.append_basic_block(&function, "entry");
     }
@@ -135,6 +157,12 @@ impl Compiler {
     funcs: &HashMap<String, Func>,
   ) {
     let basic_block = function.get_first_basic_block().unwrap();
+    for (i, param) in func_dec.params.iter().enumerate() {
+      let arg = function.get_nth_param(i as u32).unwrap();
+      let alloca = self.create_entry_block_alloca(&func_dec.name, &param.name);
+      self.builder.position_at_end(&basic_block);
+      self.builder.build_store(alloca, arg);
+    }
     self.compile_block(func_body_start, &basic_block, function, funcs);
 
     //If the function is of type void we still need to make sure to build a return
