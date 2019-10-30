@@ -330,4 +330,37 @@ mod tests {
 
     assert_eq!(result, 0);
   }
+
+  #[test]
+  fn test_variable_in_expression() {
+    let program =
+      Program::try_from(Path::new("tests/samples/variable_in_expression.rs")).unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 5);
+  }
+
+  #[test]
+  fn test_assign_variable_to_another() {
+    let program =
+      Program::try_from(Path::new("tests/samples/assign_variable_to_another.rs"))
+        .unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 3);
+  }
 }
