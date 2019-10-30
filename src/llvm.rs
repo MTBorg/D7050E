@@ -5,12 +5,9 @@ use inkwell::module::Module;
 use inkwell::OptimizationLevel;
 use std::collections::HashMap;
 
-use crate::types::{
-  context::Context as VarContext, func::Func, node::Node, opcode::Opcode,
-  program::Program, variable::Variable,
-};
+use crate::types::{func::Func, node::Node, opcode::Opcode, program::Program};
 use inkwell::basic_block::BasicBlock;
-use inkwell::values::{FunctionValue, InstructionValue, IntValue, PointerValue};
+use inkwell::values::{FunctionValue, IntValue, PointerValue};
 use inkwell::IntPredicate;
 
 /// Convenience type alias for the `sum` function.
@@ -109,7 +106,7 @@ impl Compiler {
     let basic_block = self.context.append_basic_block(&function, "entry");
     self.funcs.insert(func.name.to_string(), function);
     // self.builder.position_at_end(&basic_block);
-    self.compile_block(&func.body_start, &basic_block, &func.name, &function, funcs);
+    self.compile_block(&func.body_start, &basic_block, &function, funcs);
   }
 
   /// Creates a new stack allocation instruction in the entry block of the function.
@@ -138,12 +135,10 @@ impl Compiler {
   ) {
     match node {
       Node::Return(expr, _) => {
-        println!("return");
         let expr_val = self.compile_expr(expr, funcs);
         self.builder.build_return(Some(&expr_val));
       }
       Node::Let(id, _, _, expr, _) => {
-        println!("let");
         let expr_val = self.compile_expr(expr, funcs);
         let alloca = self.create_entry_block_alloca("main", id);
         self.builder.build_store(alloca, expr_val);
@@ -181,13 +176,11 @@ impl Compiler {
       .build_conditional_branch(cond, &then_block, &else_block);
 
     // build then block
-    self.builder.position_at_end(&then_block);
-    self.compile_node(then_body, func, funcs);
+    self.compile_block(then_body, &then_block, func, funcs);
     self.builder.build_unconditional_branch(&cont_block);
 
     // build else block
-    self.builder.position_at_end(&else_block);
-    self.compile_node(else_body, func, funcs);
+    self.compile_block(else_body, &else_block, func, funcs);
     self.builder.build_unconditional_branch(&cont_block);
 
     // emit merge block
@@ -237,7 +230,6 @@ impl Compiler {
     &mut self,
     body_start: &Node,
     block: &BasicBlock,
-    name: &str,
     func: &FunctionValue,
     funcs: &HashMap<String, Func>,
   ) {
@@ -253,7 +245,5 @@ impl Compiler {
       self.compile_node(&next_node.clone().unwrap(), func, funcs);
       next_node = next_node.unwrap().get_next_instruction();
     }
-
-    println!("Returning");
   }
 }
