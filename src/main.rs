@@ -30,21 +30,21 @@ fn main() {
       return;
     }
   };
-  // let type_res = type_check_program(&program);
-  // if let Ok(_) = type_res {
-  //   println!(
-  //     "Interpreter finished with exit code {}",
-  //     match program.run() {
-  //       Some(value) => value.to_string(),
-  //       None => 0.to_string(),
-  //     }
-  //   )
-  // } else if let Err(errors) = type_res {
-  //   print_error_header();
-  //   for error in errors.iter() {
-  //     println!("- {}", error);
-  //   }
-  // }
+  let type_res = type_check_program(&program);
+  if let Ok(_) = type_res {
+    println!(
+      "Interpreter finished with exit code {}",
+      match program.run() {
+        Some(value) => value.to_string(),
+        None => 0.to_string(),
+      }
+    )
+  } else if let Err(errors) = type_res {
+    print_error_header();
+    for error in errors.iter() {
+      println!("- {}", error);
+    }
+  }
   let mut compiler = Compiler::new();
 
   let main = compiler

@@ -114,13 +114,6 @@ impl Compiler {
           .iter()
           .map(|a| self.compile_expr(a, funcs).into())
           .collect();
-        for arg in args.iter() {
-          println!(
-            "arg: {}",
-            arg.as_int_value().print_to_string().to_str().unwrap()
-          );
-        }
-        println!("{:#?}", args);
         let call = self.builder.build_call(function, &args, func_name);
         return *call.try_as_basic_value().left().unwrap().as_int_value();
       }
@@ -152,7 +145,6 @@ impl Compiler {
 
         None => self.context.void_type().fn_type(&[], false),
       };
-      println!("{:#?}", args);
       let function = self.module.add_function(&func.name, fn_type, None);
       self.context.append_basic_block(&function, "entry");
     }
