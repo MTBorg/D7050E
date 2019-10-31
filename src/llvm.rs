@@ -639,4 +639,20 @@ mod tests {
 
     assert_eq!(result, 3);
   }
+
+  #[test]
+  fn test_fibbonacci_recursive() {
+    let program =
+      Program::try_from(Path::new("tests/samples/fibbonaci_recursive.rs")).unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 34);
+  }
 }
