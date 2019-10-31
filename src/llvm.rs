@@ -58,6 +58,12 @@ impl Compiler {
         let var = self.get_variable(&name);
         return self.builder.build_load(*var, &name).into_int_value();
       }
+      Node::Bool(b) => {
+        return self
+          .context
+          .i32_type()
+          .const_int(if *b { 1 } else { 0 }, false)
+      }
       Node::Op(left, op, right) => {
         let left_val = self.compile_expr(left, funcs);
         let right_val = self.compile_expr(right, funcs);
@@ -78,10 +84,26 @@ impl Compiler {
               .builder
               .build_int_compare(IntPredicate::NE, left_val, right_val, "neq")
           }
-          Opcode::Geq => left_val.const_int_compare(IntPredicate::SGE, right_val),
-          Opcode::Leq => left_val.const_int_compare(IntPredicate::SLE, right_val),
-          Opcode::Gneq => left_val.const_int_compare(IntPredicate::SGT, right_val),
-          Opcode::Lneq => left_val.const_int_compare(IntPredicate::SLT, right_val),
+          Opcode::Geq => {
+            self
+              .builder
+              .build_int_compare(IntPredicate::SGE, left_val, right_val, "geq")
+          }
+          Opcode::Leq => {
+            self
+              .builder
+              .build_int_compare(IntPredicate::SLE, left_val, right_val, "leq")
+          }
+          Opcode::Gneq => {
+            self
+              .builder
+              .build_int_compare(IntPredicate::SGT, left_val, right_val, "gneq")
+          }
+          Opcode::Lneq => {
+            self
+              .builder
+              .build_int_compare(IntPredicate::SLT, left_val, right_val, "lneq")
+          }
           Opcode::And => left_val.const_and(right_val),
           Opcode::Or => left_val.const_or(right_val),
         };
