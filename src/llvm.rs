@@ -21,14 +21,13 @@ type MainFunc = unsafe extern "C" fn() -> i32;
 
 /// Compiler holds the LLVM state for the compilation
 pub struct Compiler {
-  pub context: Context,
-  pub builder: Builder,
-  pub module: Module,
+  context: Context,
+  builder: Builder,
+  module: Module,
 
   // The hashmap has to use both the variable name and block as keys to allow
   // for shadowing
-  pub variables: HashMap<(String, BasicBlock), PointerValue>,
-  pub funcs: HashMap<String, FunctionValue>,
+  variables: HashMap<(String, BasicBlock), PointerValue>,
 }
 
 impl Compiler {
@@ -39,7 +38,6 @@ impl Compiler {
       module: context.create_module("main"),
       context: context,
       variables: HashMap::new(),
-      funcs: HashMap::new(),
     }
   }
 
