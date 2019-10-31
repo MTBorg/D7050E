@@ -107,8 +107,8 @@ impl Compiler {
               .builder
               .build_int_compare(IntPredicate::SLT, left_val, right_val, "lneq")
           }
-          Opcode::And => left_val.const_and(right_val),
-          Opcode::Or => left_val.const_or(right_val),
+          Opcode::And => self.builder.build_and(left_val, right_val, "and"),
+          Opcode::Or => self.builder.build_or(left_val, right_val, "or"),
         }
       }
       Node::FuncCall(func_name, args, _) => {
