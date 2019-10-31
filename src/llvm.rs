@@ -24,7 +24,6 @@ pub struct Compiler {
   pub context: Context,
   pub builder: Builder,
   pub module: Module,
-  // pub fn_value_opt: Option<FunctionValue>,
 
   // The hashmap has to use both the variable name and block as keys to allow
   // for shadowing
@@ -61,21 +60,19 @@ impl Compiler {
     block: &BasicBlock,
   ) -> IntValue {
     match expr {
-      Node::Number(n) => return self.context.i32_type().const_int(*n as u64, false),
+      Node::Number(n) => self.context.i32_type().const_int(*n as u64, false),
       Node::Var(name) => {
         let var = self.get_variable(&name, block);
-        return self.builder.build_load(*var, &name).into_int_value();
+        self.builder.build_load(*var, &name).into_int_value()
       }
-      Node::Bool(b) => {
-        return self
-          .context
-          .i32_type()
-          .const_int(if *b { 1 } else { 0 }, false)
-      }
+      Node::Bool(b) => self
+        .context
+        .i32_type()
+        .const_int(if *b { 1 } else { 0 }, false),
       Node::Op(left, op, right) => {
         let left_val = self.compile_expr(left, funcs, block);
         let right_val = self.compile_expr(right, funcs, block);
-        return match op {
+        match op {
           Opcode::Add => self.builder.build_int_add(left_val, right_val, "add"),
           Opcode::Sub => self.builder.build_int_sub(left_val, right_val, "sub"),
           Opcode::Mul => self.builder.build_int_mul(left_val, right_val, "mul"),
@@ -114,7 +111,7 @@ impl Compiler {
           }
           Opcode::And => left_val.const_and(right_val),
           Opcode::Or => left_val.const_or(right_val),
-        };
+        }
       }
       Node::FuncCall(func_name, args, _) => {
         let function = self.module.get_function(func_name).unwrap();
@@ -123,10 +120,10 @@ impl Compiler {
           .map(|a| self.compile_expr(a, funcs, block).into())
           .collect();
         let call = self.builder.build_call(function, &args, func_name);
-        return *call.try_as_basic_value().left().unwrap().as_int_value();
+        *call.try_as_basic_value().left().unwrap().as_int_value()
       }
-      _ => unreachable!(),
-    };
+      _ => unreachable!("Cannot compile node {:#?} in expression", expr),
+    }
   }
 
   pub fn compile_program(&mut self, program: &Program) -> Option<JitFunction<MainFunc>> {
@@ -247,14 +244,14 @@ impl Compiler {
           .iter()
           .map(|a| self.compile_expr(a, funcs, block).into())
           .collect();
-        let func = match self.module.get_function(func_name) {
-          Some(func) => func,
-          None => unreachable!("Could not find function {}", func_name),
-        };
+        let func = self
+          .module
+          .get_function(func_name)
+          .expect(&format!("Could not find function {}", func_name));
         self.builder.build_call(func, &args, func_name);
       }
       Node::Empty => (),
-      _ => unreachable!("{:#?}", node),
+      _ => unreachable!("Cannot compile node {:#?}", node),
     };
   }
 
@@ -319,8 +316,6 @@ impl Compiler {
     self.builder.position_at_end(&then_block);
     self.compile_block(then_body, &then_block, func, funcs);
     self.builder.build_unconditional_branch(&cont_block);
-
-    // let then_bb = self.builder.get_insert_block().unwrap();
 
     self.builder.build_unconditional_branch(&cont_block);
 
