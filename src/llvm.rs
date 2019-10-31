@@ -243,11 +243,15 @@ impl Compiler {
         self.builder.build_store(*variable, expr);
       }
       Node::FuncCall(func_name, args, _) => {
+        let args: Vec<BasicValueEnum> = args
+          .iter()
+          .map(|a| self.compile_expr(a, funcs, block).into())
+          .collect();
         let func = match self.module.get_function(func_name) {
           Some(func) => func,
           None => unreachable!("Could not find function {}", func_name),
         };
-        self.builder.build_call(func, &[], func_name);
+        self.builder.build_call(func, &args, func_name);
       }
       Node::Empty => (),
       _ => unreachable!("{:#?}", node),
