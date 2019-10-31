@@ -631,4 +631,20 @@ mod tests {
 
     assert_eq!(result, 9);
   }
+
+  #[test]
+  fn test_variable_scope_functions() {
+    let program =
+      Program::try_from(Path::new("tests/samples/variable_scope_functions.rs")).unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 3);
+  }
 }
