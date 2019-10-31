@@ -696,4 +696,22 @@ mod tests {
 
     assert_eq!(result, 4);
   }
+
+  #[test]
+  fn test_variable_redeclare_in_same_scope() {
+    let program = Program::try_from(Path::new(
+      "tests/samples/variable_redeclare_in_same_scope.rs",
+    ))
+    .unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 7);
+  }
 }
