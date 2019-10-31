@@ -68,15 +68,11 @@ impl Compiler {
           Opcode::Div => self
             .builder
             .build_int_signed_div(left_val, right_val, "div"),
-          // Opcode::Eq => left_val.const_int_compare(IntPredicate::NE, right_val),
           Opcode::Eq => {
             self
               .builder
               .build_int_compare(IntPredicate::EQ, left_val, right_val, "eq")
           }
-          // Opcode::Eq => left_val.const_add(right_val),
-          // Opcode::Eq => self.context.i64_type().const_int(0, false),
-          // Opcode::Neq => left_val.const_int_compare(IntPredicate::NE, right_val),
           Opcode::Neq => {
             self
               .builder
