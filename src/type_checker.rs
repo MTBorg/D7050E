@@ -139,6 +139,24 @@ fn type_check(
         }
       };
 
+      // Check argument/parameter length
+      if args.len() != func.params.len() {
+        println!("arg: {}, param: {}", args.len(), func.params.len());
+        if args.len() > func.params.len() {
+          return Err(Box::new(TypeError::TooManyArgs {
+            func: func.name.clone(),
+            expected: func.params.len(),
+            received: args.len(),
+          }));
+        } else {
+          let missing = func.params[args.len()..func.params.len()].to_vec();
+          return Err(Box::new(TypeError::MissingArgs {
+            func: func.name.clone(),
+            missing: missing,
+          }));
+        }
+      }
+
       // Check argument types
       for (arg, param) in args.iter().zip(&func.params) {
         let (arg_type, _) = match type_check(arg, context, funcs) {
@@ -571,6 +589,52 @@ mod tests {
     funcs.insert("foo".to_string(), func_dec);
     assert!(type_check(
       &Node::Return(Box::new(Node::Bool(true)), None),
+      &mut context,
+      &funcs
+    )
+    .is_ok());
+  }
+
+  #[test]
+  pub fn test_func_missing_arg() {
+    let func_dec = Func {
+      name: "foo".to_string(),
+      params: vec![FuncParam {
+        name: "a".to_string(),
+        _type: Type::Int,
+        mutable: true,
+      }],
+      ret_type: Some(Type::Int),
+      body_start: Node::Empty,
+    };
+    let mut context = Context::from(&func_dec);
+    let mut funcs = HashMap::new();
+    funcs.insert("foo".to_string(), func_dec);
+    assert!(!type_check(
+      &Box::new(Node::FuncCall("foo".to_string(), vec!(), None)),
+      &mut context,
+      &funcs
+    )
+    .is_ok());
+  }
+
+  #[test]
+  pub fn test_func_too_many_args() {
+    let func_dec = Func {
+      name: "foo".to_string(),
+      params: vec![],
+      ret_type: Some(Type::Int),
+      body_start: Node::Empty,
+    };
+    let mut context = Context::from(&func_dec);
+    let mut funcs = HashMap::new();
+    funcs.insert("foo".to_string(), func_dec);
+    assert!(!type_check(
+      &Box::new(Node::FuncCall(
+        "foo".to_string(),
+        vec!(Node::Bool(false)),
+        None
+      )),
       &mut context,
       &funcs
     )

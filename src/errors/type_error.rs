@@ -1,4 +1,4 @@
-use crate::types::{func::Func, func_param::FuncParam, opcode::Opcode, _type::Type};
+use crate::types::{_type::Type, func::Func, func_param::FuncParam, opcode::Opcode};
 use std::error;
 
 #[derive(Debug)]
@@ -11,6 +11,15 @@ pub enum TypeError {
   ArgMissmatch {
     arg_type: Option<Type>,
     param: FuncParam,
+  },
+  TooManyArgs {
+    func: String,
+    expected: usize,
+    received: usize,
+  },
+  MissingArgs {
+    func: String,
+    missing: Vec<FuncParam>,
   },
   NonTypeExpression,
   InvalidReturnType {
@@ -74,9 +83,7 @@ impl std::fmt::Display for TypeError {
           None => "void",
         }
       ),
-      TypeError::InvalidNode => {
-        "This node does not evaluate to a type".to_string()
-      }
+      TypeError::InvalidNode => "This node does not evaluate to a type".to_string(),
       TypeError::LetMissmatch { r#type, expr_type } => format!(
         "Let statement expected type {} because of declaration but received {}",
         r#type.to_str(),
@@ -101,6 +108,28 @@ impl std::fmt::Display for TypeError {
         func_name,
         ret_type.to_str()
       ),
+      TypeError::TooManyArgs {
+        func,
+        expected,
+        received,
+      } => format!(
+        "Function {} received too many arguments: expected {} arguments but received {}",
+        func, expected, received
+      ),
+      TypeError::MissingArgs { func, missing } => {
+        let mut missing_string: String = "".to_string();
+        let missing_length = missing.len();
+        for (i, param) in missing.iter().enumerate() {
+          missing_string += &(param.name.clone()
+            + ": "
+            + param._type.to_str()
+            + if i != missing_length - 1 { "," } else { "" });
+        }
+        format!(
+          "Function {} missing arguments to parameters {}",
+          func, missing_string
+        )
+      }
     };
     write!(f, "{}", message)
   }
