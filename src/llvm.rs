@@ -304,7 +304,7 @@ impl Compiler {
 
     // build then block
     self.builder.position_at_end(&then_block);
-    self.compile_node(then_body, func, funcs);
+    self.compile_block(then_body, &then_block, func, funcs);
     self.builder.build_unconditional_branch(&cont_block);
 
     // let then_bb = self.builder.get_insert_block().unwrap();
