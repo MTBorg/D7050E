@@ -25,9 +25,10 @@ pub struct Compiler {
   builder: Builder,
   module: Module,
 
-  // The hashmap has to use both the variable name and block as keys to allow
-  // for shadowing
-  variables: HashMap<(String, BasicBlock), PointerValue>,
+  // Acts as a scope stack, each block will be pushed to the end of the vector.
+  // i.e. the latest variables will be at the end of the vector.
+  // This enables shadowing.
+  variables: Vec<HashMap<String, PointerValue>>,
 }
 
 impl Compiler {
@@ -37,30 +38,27 @@ impl Compiler {
       builder: context.create_builder(),
       module: context.create_module("main"),
       context: context,
-      variables: HashMap::new(),
+      variables: vec![],
     }
   }
 
-  fn get_variable(&self, id: &str, block: &BasicBlock) -> &PointerValue {
-    match self.variables.get(&(id.to_string(), *block)) {
-      Some(var) => var,
-      None => panic!(
-        "Could not find a matching variable, {} in {:?}",
-        id, self.variables
-      ),
+  fn get_variable(&self, id: &str) -> &PointerValue {
+    for block in self.variables.iter().rev() {
+      if let Some(var) = block.get(id) {
+        return var;
+      }
     }
+    panic!(
+      "Could not find a matching variable, {} in {:?}",
+      id, self.variables
+    );
   }
 
-  fn compile_expr(
-    &self,
-    expr: &Node,
-    funcs: &HashMap<String, Func>,
-    block: &BasicBlock,
-  ) -> IntValue {
+  fn compile_expr(&self, expr: &Node, funcs: &HashMap<String, Func>) -> IntValue {
     match expr {
       Node::Number(n) => self.context.i32_type().const_int(*n as u64, false),
       Node::Var(name) => {
-        let var = self.get_variable(&name, block);
+        let var = self.get_variable(&name);
         self.builder.build_load(*var, &name).into_int_value()
       }
       Node::Bool(b) => self
@@ -68,8 +66,8 @@ impl Compiler {
         .i32_type()
         .const_int(if *b { 1 } else { 0 }, false),
       Node::Op(left, op, right) => {
-        let left_val = self.compile_expr(left, funcs, block);
-        let right_val = self.compile_expr(right, funcs, block);
+        let left_val = self.compile_expr(left, funcs);
+        let right_val = self.compile_expr(right, funcs);
         match op {
           Opcode::Add => self.builder.build_int_add(left_val, right_val, "add"),
           Opcode::Sub => self.builder.build_int_sub(left_val, right_val, "sub"),
@@ -115,7 +113,7 @@ impl Compiler {
         let function = self.module.get_function(func_name).unwrap();
         let args: Vec<BasicValueEnum> = args
           .iter()
-          .map(|a| self.compile_expr(a, funcs, block).into())
+          .map(|a| self.compile_expr(a, funcs).into())
           .collect();
         let call = self.builder.build_call(function, &args, func_name);
         *call.try_as_basic_value().left().unwrap().as_int_value()
@@ -170,8 +168,10 @@ impl Compiler {
     funcs: &HashMap<String, Func>,
   ) {
     let basic_block = function.get_first_basic_block().unwrap();
+    self.variables.push(HashMap::new()); // Push scope
     for (i, param) in func_dec.params.iter().enumerate() {
       let arg = function.get_nth_param(i as u32).unwrap();
+
       let alloca = self.create_entry_block_alloca(&basic_block, &param.name);
       self.builder.position_at_end(&basic_block);
       self.builder.build_store(alloca, arg);
@@ -188,6 +188,8 @@ impl Compiler {
         None
       });
     }
+
+    self.variables.pop(); // Pop scope
   }
 
   /// Creates a new stack allocation instruction in the entry block of the function.
@@ -203,7 +205,12 @@ impl Compiler {
       None => builder.position_at_end(&block),
     }
     let alloca = builder.build_alloca(self.context.i32_type(), name);
-    self.variables.insert((name.to_string(), *block), alloca);
+    self
+      .variables
+      .iter_mut()
+      .last()
+      .unwrap()
+      .insert(name.to_string(), alloca);
     alloca
   }
 
@@ -216,31 +223,31 @@ impl Compiler {
   ) {
     match node {
       Node::Return(expr, _) => {
-        let expr_val = self.compile_expr(expr, funcs, block);
+        let expr_val = self.compile_expr(expr, funcs);
         self.builder.build_return(Some(&expr_val));
       }
       Node::Let(id, _, _, expr, _) => {
         let alloca = self.create_entry_block_alloca(block, id);
-        let expr_val = self.compile_expr(expr, funcs, block);
+        let expr_val = self.compile_expr(expr, funcs);
         self.builder.build_store(alloca, expr_val);
       }
       Node::If(condition, then_body, else_body, _) => {
         match else_body {
           Some(else_body) => {
-            self.compile_if_else(condition, then_body, else_body, func, funcs, block)
+            self.compile_if_else(condition, then_body, else_body, func, funcs)
           }
-          None => self.compile_if(condition, then_body, func, funcs, block),
+          None => self.compile_if(condition, then_body, func, funcs),
         };
       }
       Node::Assign(variable, expr, _) => {
-        let variable = self.get_variable(variable, block);
-        let expr = self.compile_expr(expr, funcs, block);
+        let variable = self.get_variable(variable);
+        let expr = self.compile_expr(expr, funcs);
         self.builder.build_store(*variable, expr);
       }
       Node::FuncCall(func_name, args, _) => {
         let args: Vec<BasicValueEnum> = args
           .iter()
-          .map(|a| self.compile_expr(a, funcs, block).into())
+          .map(|a| self.compile_expr(a, funcs).into())
           .collect();
         let func = self
           .module
@@ -260,9 +267,8 @@ impl Compiler {
     else_body: &Node,
     func: &FunctionValue,
     funcs: &HashMap<String, Func>,
-    block: &BasicBlock,
   ) {
-    let cond = self.compile_expr(condition, funcs, block);
+    let cond = self.compile_expr(condition, funcs);
 
     // build branch
     let then_block = self.context.append_basic_block(&func, "then");
@@ -296,11 +302,10 @@ impl Compiler {
     then_body: &Node,
     func: &FunctionValue,
     funcs: &HashMap<String, Func>,
-    block: &BasicBlock,
   ) {
     let parent = func;
 
-    let cond = self.compile_expr(condition, funcs, block);
+    let cond = self.compile_expr(condition, funcs);
 
     // build branch
     let then_block = self.context.append_basic_block(&parent, "then");
@@ -335,6 +340,7 @@ impl Compiler {
       return;
     }
     let mut next_node = Some(body_start);
+    self.variables.push(HashMap::new()); // Push scope
     while match next_node {
       Some(_) => true,
       _ => false,
@@ -342,6 +348,7 @@ impl Compiler {
       self.compile_node(&next_node.clone().unwrap(), func, funcs, block);
       next_node = next_node.unwrap().get_next_instruction();
     }
+    self.variables.pop(); // Pop scope
   }
 }
 
@@ -710,5 +717,37 @@ mod tests {
     };
 
     assert_eq!(result, 7);
+  }
+
+  #[test]
+  fn test_variable_assignment_in_if_block() {
+    let program = Program::try_from(Path::new(
+      "tests/samples/variable_assignment_in_if_block.rs",
+    ))
+    .unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 10);
+  }
+
+  #[test]
+  #[should_panic]
+  fn test() {
+    let program =
+      Program::try_from(Path::new("tests/samples/function_argument_scope.rs")).unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    unsafe {
+      main.call();
+    };
   }
 }
