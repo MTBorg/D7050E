@@ -111,10 +111,14 @@ impl Compiler {
       }
       Node::FuncCall(func_name, args, _) => {
         let function = self.module.get_function(func_name).unwrap();
+
+        //Compile the arguments
         let args: Vec<BasicValueEnum> = args
           .iter()
           .map(|a| self.compile_expr(a, funcs).into())
           .collect();
+
+        // Build the call and return the result
         let call = self.builder.build_call(function, &args, func_name);
         *call.try_as_basic_value().left().unwrap().as_int_value()
       }
@@ -130,7 +134,8 @@ impl Compiler {
 
     // Add all functions to the module before compiling
     for (_, func) in program.funcs.iter() {
-      let args: Vec<BasicTypeEnum> = func
+      // Construct a vector of all the parameter types
+      let param_types: Vec<BasicTypeEnum> = func
         .params
         .iter()
         .map(|param| match param._type {
@@ -138,10 +143,12 @@ impl Compiler {
           Type::Bool => self.context.bool_type().into(),
         })
         .collect();
+
+      // Construct the function return type
       let fn_type = match func.ret_type {
         Some(ref r#type) => match r#type {
-          Type::Int => self.context.i32_type().fn_type(&args, false),
-          Type::Bool => self.context.bool_type().fn_type(&args, false),
+          Type::Int => self.context.i32_type().fn_type(&param_types, false),
+          Type::Bool => self.context.bool_type().fn_type(&param_types, false),
         },
 
         None => self.context.void_type().fn_type(&[], false),
@@ -150,13 +157,14 @@ impl Compiler {
       self.context.append_basic_block(&function, "entry");
     }
 
+    // Compile the functions
     for (_, func) in program.funcs.iter() {
       let function = self.module.get_function(&func.name).unwrap();
       self.compile_func(&function, &func, &func.body_start, &program.funcs);
     }
 
     let temp = unsafe { execution_engine.get_function("main").ok() };
-    // self.module.print_to_stderr();
+    // self.module.print_to_stderr(); //Uncomment this to get the llvm-ir
     return temp;
   }
 
@@ -167,16 +175,20 @@ impl Compiler {
     func_body_start: &Node,
     funcs: &HashMap<String, Func>,
   ) {
-    let basic_block = function.get_first_basic_block().unwrap();
-    self.variables.push(HashMap::new()); // Push scope
+    // Push a new variable scope
+    self.variables.push(HashMap::new());
+
+    let func_block = function.get_first_basic_block().unwrap();
+    // Build store instruction for the arguments
     for (i, param) in func_dec.params.iter().enumerate() {
       let arg = function.get_nth_param(i as u32).unwrap();
 
-      let alloca = self.create_entry_block_alloca(&basic_block, &param.name);
-      self.builder.position_at_end(&basic_block);
+      let alloca = self.create_entry_block_alloca(&func_block, &param.name);
+      self.builder.position_at_end(&func_block);
       self.builder.build_store(alloca, arg);
     }
-    self.compile_block(func_body_start, &basic_block, function, funcs);
+
+    self.compile_block(func_body_start, &func_block, function, funcs);
 
     //If the function is of type void we still need to make sure to build a return
     if let None = func_dec.ret_type {
@@ -189,7 +201,8 @@ impl Compiler {
       });
     }
 
-    self.variables.pop(); // Pop scope
+    // Pop the scope
+    self.variables.pop();
   }
 
   /// Creates a new stack allocation instruction in the entry block of the function.
@@ -245,14 +258,17 @@ impl Compiler {
         self.builder.build_store(*variable, expr);
       }
       Node::FuncCall(func_name, args, _) => {
+        // Compile the arguments
         let args: Vec<BasicValueEnum> = args
           .iter()
           .map(|a| self.compile_expr(a, funcs).into())
           .collect();
+
         let func = self
           .module
           .get_function(func_name)
           .expect(&format!("Could not find function {}", func_name));
+
         self.builder.build_call(func, &args, func_name);
       }
       Node::Empty => (),
@@ -300,16 +316,14 @@ impl Compiler {
     &mut self,
     condition: &Node,
     then_body: &Node,
-    func: &FunctionValue,
+    parent_block: &FunctionValue,
     funcs: &HashMap<String, Func>,
   ) {
-    let parent = func;
-
     let cond = self.compile_expr(condition, funcs);
 
     // build branch
-    let then_block = self.context.append_basic_block(&parent, "then");
-    let cont_block = self.context.append_basic_block(&parent, "cont");
+    let then_block = self.context.append_basic_block(parent_block, "then");
+    let cont_block = self.context.append_basic_block(parent_block, "cont");
 
     self
       .builder
@@ -317,7 +331,7 @@ impl Compiler {
 
     // build then block
     self.builder.position_at_end(&then_block);
-    self.compile_block(then_body, &then_block, func, funcs);
+    self.compile_block(then_body, &then_block, parent_block, funcs);
     self.builder.build_unconditional_branch(&cont_block);
 
     self.builder.build_unconditional_branch(&cont_block);
@@ -335,12 +349,17 @@ impl Compiler {
     func: &FunctionValue,
     funcs: &HashMap<String, Func>,
   ) {
+    // Push a new variable scope
+    self.variables.push(HashMap::new());
+
     self.builder.position_at_end(&block);
+
     if let Node::Empty = body_start {
       return;
     }
     let mut next_node = Some(body_start);
-    self.variables.push(HashMap::new()); // Push scope
+
+    // Compile the instructions
     while match next_node {
       Some(_) => true,
       _ => false,
@@ -348,7 +367,9 @@ impl Compiler {
       self.compile_node(&next_node.clone().unwrap(), func, funcs, block);
       next_node = next_node.unwrap().get_next_instruction();
     }
-    self.variables.pop(); // Pop scope
+
+    // Push the scope
+    self.variables.pop();
   }
 }
 
