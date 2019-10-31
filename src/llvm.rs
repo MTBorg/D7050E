@@ -575,4 +575,56 @@ mod tests {
 
     assert_eq!(result, 24);
   }
+
+  #[test]
+  fn test_function_call_return_arg() {
+    let program =
+      Program::try_from(Path::new("tests/samples/function_call_return_arg.rs")).unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 17);
+  }
+
+  #[test]
+  fn test_function_call_return_sum_of_args() {
+    let program = Program::try_from(Path::new(
+      "tests/samples/function_call_return_sum_of_args.rs",
+    ))
+    .unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, -2);
+  }
+
+  #[test]
+  fn test_function_call_return_local_variable() {
+    let program = Program::try_from(Path::new(
+      "tests/samples/function_call_return_local_variable.rs",
+    ))
+    .unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 9);
+  }
 }
