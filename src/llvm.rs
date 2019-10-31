@@ -655,4 +655,36 @@ mod tests {
 
     assert_eq!(result, 34);
   }
+
+  #[test]
+  fn test_shadowing_return_original() {
+    let program =
+      Program::try_from(Path::new("tests/samples/shadowing_return_original.rs")).unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 14);
+  }
+
+  #[test]
+  fn test_shadowing_return_shadowed() {
+    let program =
+      Program::try_from(Path::new("tests/samples/shadowing_return_shadowed.rs")).unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+
+    assert_eq!(result, 4);
+  }
 }
