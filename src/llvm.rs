@@ -338,8 +338,8 @@ mod tests {
   #[test]
   fn test_if_statement_true() {
     let program = Program::try_from(Path::new("tests/samples/if_a_eq_2.rs")).unwrap();
-    let mut compiler = Compiler::new();
 
+    let mut compiler = Compiler::new();
     let main = compiler.compile_program(&program).unwrap();
     let result;
     unsafe {
@@ -352,8 +352,8 @@ mod tests {
   #[test]
   fn test_if_empty_body() {
     let program = Program::try_from(Path::new("tests/samples/if_empty_body.rs")).unwrap();
-    let mut compiler = Compiler::new();
 
+    let mut compiler = Compiler::new();
     let main = compiler.compile_program(&program).unwrap();
     let result;
     unsafe {
@@ -369,7 +369,6 @@ mod tests {
       Program::try_from(Path::new("tests/samples/if_else_into_else.rs")).unwrap();
 
     let mut compiler = Compiler::new();
-
     let main = compiler.compile_program(&program).unwrap();
     let result;
     unsafe {
@@ -385,7 +384,6 @@ mod tests {
       Program::try_from(Path::new("tests/samples/empty_function.rs")).unwrap();
 
     let mut compiler = Compiler::new();
-
     let main = compiler.compile_program(&program).unwrap();
     let result;
     unsafe {
@@ -402,7 +400,6 @@ mod tests {
         .unwrap();
 
     let mut compiler = Compiler::new();
-
     let main = compiler.compile_program(&program).unwrap();
     let result;
     unsafe {
@@ -419,7 +416,6 @@ mod tests {
         .unwrap();
 
     let mut compiler = Compiler::new();
-
     let main = compiler.compile_program(&program).unwrap();
     let result;
     unsafe {
@@ -435,7 +431,6 @@ mod tests {
         .unwrap();
 
     let mut compiler = Compiler::new();
-
     let main = compiler.compile_program(&program).unwrap();
     let result;
     unsafe {
@@ -451,7 +446,6 @@ mod tests {
         .unwrap();
 
     let mut compiler = Compiler::new();
-
     let main = compiler.compile_program(&program).unwrap();
     let result;
     unsafe {
@@ -468,7 +462,6 @@ mod tests {
         .unwrap();
 
     let mut compiler = Compiler::new();
-
     let main = compiler.compile_program(&program).unwrap();
     let result;
     unsafe {
@@ -484,7 +477,6 @@ mod tests {
       Program::try_from(Path::new("tests/samples/relop_neq_true.rs")).unwrap();
 
     let mut compiler = Compiler::new();
-
     let main = compiler.compile_program(&program).unwrap();
     let result;
     unsafe {
@@ -500,7 +492,6 @@ mod tests {
       Program::try_from(Path::new("tests/samples/relop_neq_false.rs")).unwrap();
 
     let mut compiler = Compiler::new();
-
     let main = compiler.compile_program(&program).unwrap();
     let result;
     unsafe {
@@ -516,7 +507,6 @@ mod tests {
       Program::try_from(Path::new("tests/samples/variable_int_assignment.rs")).unwrap();
 
     let mut compiler = Compiler::new();
-
     let main = compiler.compile_program(&program).unwrap();
     let result;
     unsafe {
@@ -532,7 +522,6 @@ mod tests {
       Program::try_from(Path::new("tests/samples/function_call_return_int.rs")).unwrap();
 
     let mut compiler = Compiler::new();
-
     let main = compiler.compile_program(&program).unwrap();
     let result;
     unsafe {
@@ -549,7 +538,6 @@ mod tests {
         .unwrap();
 
     let mut compiler = Compiler::new();
-
     let main = compiler.compile_program(&program).unwrap();
     let result;
     unsafe {
@@ -566,7 +554,6 @@ mod tests {
         .unwrap();
 
     let mut compiler = Compiler::new();
-
     let main = compiler.compile_program(&program).unwrap();
     let result;
     unsafe {
@@ -582,7 +569,6 @@ mod tests {
       Program::try_from(Path::new("tests/samples/function_call_return_arg.rs")).unwrap();
 
     let mut compiler = Compiler::new();
-
     let main = compiler.compile_program(&program).unwrap();
     let result;
     unsafe {
