@@ -5,6 +5,6 @@ fn foo(a: i32) -> i32 {
 
 fn main() -> i32 {
   let a = 3;
-  let b = foo();
+  let b = foo(4);
   return a;
 }
