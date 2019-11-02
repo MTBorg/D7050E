@@ -32,12 +32,12 @@ impl Node {
   // * `next_instr` - The child node to attach.
   pub fn attach_next_instruction(&mut self, next_instr: Node) {
     match *self {
-      Node::Let(_, _, _, _, ref mut right_most)
-      | Node::FuncCall(_, _, ref mut right_most)
-      | Node::Assign(_, _, ref mut right_most)
-      | Node::If(_, _, _, ref mut right_most)
-      | Node::Return(_, ref mut right_most)
-      | Node::Print(_, ref mut right_most)
+      Node::Let(.., ref mut right_most)
+      | Node::FuncCall(.., ref mut right_most)
+      | Node::Assign(.., ref mut right_most)
+      | Node::If(.., ref mut right_most)
+      | Node::Return(.., ref mut right_most)
+      | Node::Print(.., ref mut right_most)
       | Node::DebugContext(ref mut right_most) => {
         *right_most = Some(Box::new(next_instr))
       }
@@ -47,12 +47,12 @@ impl Node {
 
   pub fn get_next_instruction(&self) -> Option<&Node> {
     match self {
-      Node::Let(_, _, _, _, ref right_most)
-      | Node::FuncCall(_, _, ref right_most)
-      | Node::Assign(_, _, ref right_most)
-      | Node::If(_, _, _, ref right_most)
-      | Node::Return(_, ref right_most)
-      | Node::Print(_, ref right_most)
+      Node::Let(.., ref right_most)
+      | Node::FuncCall(.., ref right_most)
+      | Node::Assign(.., ref right_most)
+      | Node::If(.., ref right_most)
+      | Node::Return(.., ref right_most)
+      | Node::Print(.., ref right_most)
       | Node::DebugContext(ref right_most) => match right_most {
         Some(node) => Some(&*node),
         _ => None,
