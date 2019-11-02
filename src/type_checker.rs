@@ -33,8 +33,7 @@ fn type_check(
         Err(e) => return Err(e),
       };
 
-      let res = context.get_var_type(&var);
-      match res {
+      match context.get_var_type(&var) {
         Some((r#type, mutable)) => {
           if !mutable {
             return Err(Box::new(TypeError::ImmutableAssignment {
@@ -218,7 +217,7 @@ fn type_check(
   }
 }
 
-fn type_check_tree(
+fn type_check_function(
   func: &Func,
   funcs: &HashMap<String, Func>,
 ) -> Result<(), Vec<Box<dyn std::error::Error>>> {
@@ -232,7 +231,6 @@ fn type_check_tree(
     Some(_) => true,
     _ => false,
   } {
-    //TODO: This should not be needed
     // If the next instruction is an empty node we should be at an empty body
     if let Node::Empty = next_node.unwrap() {
       if let Some(r#type) = func.ret_type.clone() {
@@ -282,7 +280,7 @@ pub fn type_check_program(
 
   // Iterate over the values of the hashmap (i.e. the second element)
   for func in program.funcs.iter().map(|pair| pair.1) {
-    if let Err(ref mut e) = type_check_tree(func, &program.funcs) {
+    if let Err(ref mut e) = type_check_function(func, &program.funcs) {
       errors.append(e);
     }
   }
@@ -764,7 +762,7 @@ mod tests {
     funcs.insert("foo".to_string(), func_dec.clone());
     context.push(Scope::from(func_dec.params.clone()));
     context.insert_type("a", Type::Int, false);
-    assert!(!type_check_tree(&func_dec, &funcs).is_ok());
+    assert!(!type_check_function(&func_dec, &funcs).is_ok());
   }
 
   #[test]
@@ -780,6 +778,6 @@ mod tests {
     funcs.insert("foo".to_string(), func_dec.clone());
     context.push(Scope::from(func_dec.params.clone()));
     context.insert_type("a", Type::Int, false);
-    assert!(type_check_tree(&func_dec, &funcs).is_ok());
+    assert!(type_check_function(&func_dec, &funcs).is_ok());
   }
 }

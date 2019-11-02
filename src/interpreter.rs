@@ -28,65 +28,54 @@ pub fn eval(
       None => panic!("Undefined variable {}", (*var_name)),
     },
     Node::Number(_) | Node::Bool(_) => node.clone(),
-    Node::Op(left_node, op, right_node) => match op {
-      Opcode::Add => eval(left_node, context, funcs) + eval(right_node, context, funcs),
-      Opcode::Sub => eval(left_node, context, funcs) - eval(right_node, context, funcs),
-      Opcode::Mul => eval(left_node, context, funcs) * eval(right_node, context, funcs),
-      Opcode::Div => eval(left_node, context, funcs) / eval(right_node, context, funcs),
-      Opcode::Geq => {
-        Node::Bool(eval(left_node, context, funcs) >= eval(right_node, context, funcs))
+    Node::Op(left_node, op, right_node) => {
+      let left = eval(left_node, context, funcs);
+      let right = eval(right_node, context, funcs);
+      match op {
+        Opcode::Add => left + right,
+        Opcode::Sub => left - right,
+        Opcode::Mul => left * right,
+        Opcode::Div => left / right,
+        Opcode::Geq => Node::Bool(left >= right),
+        Opcode::Leq => Node::Bool(left <= right),
+        Opcode::Gneq => Node::Bool(left > right),
+        Opcode::Lneq => Node::Bool(left < right),
+        Opcode::Eq => Node::Bool(left == right),
+        Opcode::Neq => Node::Bool(left != right),
+        Opcode::And => {
+          let b1 = match left {
+            Node::Bool(b) => b,
+            _ => panic!("Left side of logical operator && does not evaluate to boolean"),
+          };
+          let b2 = match right {
+            Node::Bool(b) => b,
+            _ => panic!("Right side of logical operator && does not evaluate to boolean"),
+          };
+          Node::Bool(b1 && b2)
+        }
+        Opcode::Or => {
+          let b1 = match left {
+            Node::Bool(b) => b,
+            _ => panic!("Left side of logical operator || does not evaluate to boolean"),
+          };
+          let b2 = match right {
+            Node::Bool(b) => b,
+            _ => panic!("Right side of logical operator || does not evaluate to boolean"),
+          };
+          Node::Bool(b1 || b2)
+        }
       }
-      Opcode::Leq => {
-        Node::Bool(eval(left_node, context, funcs) <= eval(right_node, context, funcs))
-      }
-      Opcode::Gneq => {
-        Node::Bool(eval(left_node, context, funcs) > eval(right_node, context, funcs))
-      }
-      Opcode::Lneq => {
-        Node::Bool(eval(left_node, context, funcs) < eval(right_node, context, funcs))
-      }
-      Opcode::Eq => {
-        Node::Bool(eval(left_node, context, funcs) == eval(right_node, context, funcs))
-      }
-      Opcode::Neq => {
-        Node::Bool(eval(left_node, context, funcs) != eval(right_node, context, funcs))
-      }
-      Opcode::And => {
-        let b1 = match eval(left_node, context, funcs) {
-          Node::Bool(b) => b,
-          _ => panic!("Left side of logical operator && does not evaluate to boolean"),
-        };
-        let b2 = match eval(right_node, context, funcs) {
-          Node::Bool(b) => b,
-          _ => panic!("Right side of logical operator && does not evaluate to boolean"),
-        };
-        Node::Bool(b1 && b2)
-      }
-      Opcode::Or => {
-        let b1 = match eval(left_node, context, funcs) {
-          Node::Bool(b) => b,
-          _ => panic!("Left side of logical operator || does not evaluate to boolean"),
-        };
-        let b2 = match eval(right_node, context, funcs) {
-          Node::Bool(b) => b,
-          _ => panic!("Right side of logical operator || does not evaluate to boolean"),
-        };
-        Node::Bool(b1 || b2)
-      }
-    },
+    }
     Node::If(expr, then_body, else_body, next_instr) => {
       context.push(Scope::new());
-      let res;
-      if eval(expr, context, funcs) == Node::Bool(true) {
-        res = eval(then_body, context, funcs);
+      let res = if eval(expr, context, funcs) == Node::Bool(true) {
+        eval(then_body, context, funcs)
       } else {
         match else_body {
-          Some(body) => {
-            res = eval(body, context, funcs);
-          }
-          None => res = Node::Empty,
-        };
-      }
+          Some(body) => eval(body, context, funcs),
+          None => Node::Empty,
+        }
+      };
       context.pop();
 
       // If res is empty then there can not have been a return statement in any of the
