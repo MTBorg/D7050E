@@ -1,36 +1,47 @@
-use crate::types::{opcode::Opcode, _type::Type, value::Value};
+use crate::types::{_type::Type, opcode::Opcode, value::Value};
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum Node {
+pub enum Node<'a> {
   Number(i32),
   Bool(bool),
   //Name
-  Var(String),
+  Var(&'a str),
   // Variable, type, mutable, expression, next instruction
-  Let(String, Option<Type>, bool, Box<Node>, Option<Box<Node>>),
+  Let(
+    &'a str,
+    Option<Type>,
+    bool,
+    Box<Node<'a>>,
+    Option<Box<Node<'a>>>,
+  ),
   // Variable, expression, next instruction
-  Assign(String, Box<Node>, Option<Box<Node>>),
+  Assign(&'a str, Box<Node<'a>>, Option<Box<Node<'a>>>),
   // Function, arguments, next instruction
-  FuncCall(String, Vec<Node>, Option<Box<Node>>),
+  FuncCall(&'a str, Vec<Node<'a>>, Option<Box<Node<'a>>>),
   // Expr, operation, Expr
-  Op(Box<Node>, Opcode, Box<Node>),
+  Op(Box<Node<'a>>, Opcode, Box<Node<'a>>),
   // Condition, then body, else_body, next instruction
-  If(Box<Node>, Box<Node>, Option<Box<Node>>, Option<Box<Node>>),
+  If(
+    Box<Node<'a>>,
+    Box<Node<'a>>,
+    Option<Box<Node<'a>>>,
+    Option<Box<Node<'a>>>,
+  ),
   // Expression, next instruction
-  Return(Box<Node>, Option<Box<Node>>),
+  Return(Box<Node<'a>>, Option<Box<Node<'a>>>),
   // Expression, next instruction
-  Print(Box<Node>, Option<Box<Node>>),
+  Print(Box<Node<'a>>, Option<Box<Node<'a>>>),
   // Next instruction
-  DebugContext(Option<Box<Node>>),
+  DebugContext(Option<Box<Node<'a>>>),
   Empty,
 }
 
-impl Node {
+impl<'a> Node<'a> {
   /// Attach a node to the right most child of a node.
   ///
   /// # Arguments
   /// * `child` - The child node to attach.
-  pub fn attach_right_most_child(&mut self, child: Node) {
+  pub fn attach_right_most_child(&mut self, child: Node<'a>) {
     match *self {
       Node::Let(_, _, _, _, ref mut right_most)
       | Node::FuncCall(_, _, ref mut right_most)
@@ -68,8 +79,8 @@ impl Node {
   }
 }
 
-impl std::ops::Add<Node> for Node {
-  type Output = Node;
+impl<'a> std::ops::Add<Node<'a>> for Node<'_> {
+  type Output = Node<'a>;
 
   fn add(self, other: Node) -> Node {
     match (self, other) {
@@ -79,8 +90,8 @@ impl std::ops::Add<Node> for Node {
   }
 }
 
-impl std::ops::Sub<Node> for Node {
-  type Output = Node;
+impl<'a> std::ops::Sub<Node<'a>> for Node<'a> {
+  type Output = Node<'a>;
 
   fn sub(self, other: Node) -> Node {
     match (self, other) {
@@ -90,8 +101,8 @@ impl std::ops::Sub<Node> for Node {
   }
 }
 
-impl std::ops::Mul<Node> for Node {
-  type Output = Node;
+impl<'a> std::ops::Mul<Node<'a>> for Node<'a> {
+  type Output = Node<'a>;
 
   fn mul(self, other: Node) -> Node {
     match (self, other) {
@@ -101,8 +112,8 @@ impl std::ops::Mul<Node> for Node {
   }
 }
 
-impl std::ops::Div<Node> for Node {
-  type Output = Node;
+impl<'a> std::ops::Div<Node<'a>> for Node<'a> {
+  type Output = Node<'a>;
 
   fn div(self, other: Node) -> Node {
     match (self, other) {
@@ -112,7 +123,7 @@ impl std::ops::Div<Node> for Node {
   }
 }
 
-impl std::cmp::PartialOrd<Node> for Node {
+impl<'a> std::cmp::PartialOrd<Node<'a>> for Node<'a> {
   fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
     match (self, other) {
       (Node::Number(n1), Node::Number(n2)) => Some(n1.cmp(n2)),

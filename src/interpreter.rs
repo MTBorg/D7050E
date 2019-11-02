@@ -14,11 +14,11 @@ macro_rules! eval_next_instr {
   };
 }
 
-pub fn eval(
-  node: &Node,
-  context: &mut Context<Variable>,
-  funcs: &HashMap<String, Func>,
-) -> Node {
+pub fn eval<'a>(
+  node: &'a Node<'a>,
+  context: &'a mut Context<'a, Variable<'a>>,
+  funcs: &'a HashMap<&str, Func>,
+) -> Node<'a> {
   match node {
     Node::Var(var_name) => match context.get_variable(&var_name) {
       Some(var) => match var.value {
@@ -126,7 +126,7 @@ pub fn eval(
         }
       }
       context.insert_variable(Variable {
-        name: id.to_string(),
+        name: id,
         value: val,
       });
       eval_next_instr!(next_instr, context, funcs)
@@ -139,7 +139,7 @@ pub fn eval(
       match context.get_variable_mut(id) {
         Some(var) => {
           *var = Variable {
-            name: id.to_string(),
+            name: id,
             value: val,
           }
         }

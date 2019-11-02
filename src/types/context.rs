@@ -1,25 +1,25 @@
 use crate::types::{_type::Type, func::Func, scope::Scope, variable::Variable};
 
 #[derive(Debug)]
-pub struct Context<T> {
-  scopes: Vec<Scope<T>>,
-  pub current_func: Func,
+pub struct Context<'a, T> {
+  scopes: Vec<Scope<'a, T>>,
+  pub current_func: &'a Func<'a>,
 }
 
-impl<T> From<&Func> for Context<T> {
-  fn from(func: &Func) -> Self {
+impl<'a, T> From<&'a Func<'a>> for Context<'a, T> {
+  fn from(func: &'a Func<'a>) -> Self {
     Context {
       scopes: vec![],
-      current_func: (*func).clone(),
+      current_func: func,
     }
   }
 }
 
-impl Context<Variable> {
-  pub fn insert_variable(&mut self, var: Variable) {
+impl<'a> Context<'a, Variable<'a>> {
+  pub fn insert_variable(&mut self, var: Variable<'a>) {
     match (*self).scopes.iter_mut().last() {
       Some(scope) => (*scope).elements.insert(
-        var.name.clone(),
+        var.name,
         Variable {
           name: var.name,
           value: var.value,
@@ -35,15 +35,15 @@ impl Context<Variable> {
   }
 
   // Wrapper for more readable code
-  pub fn get_variable_mut(&mut self, var: &str) -> Option<&mut Variable> {
+  pub fn get_variable_mut(&mut self, var: &str) -> Option<&'a mut Variable> {
     self.get_element_mut(var)
   }
 }
 
-impl Context<(Type, bool)> {
-  pub fn insert_type(&mut self, id: &str, r#type: Type, mutable: bool) {
+impl<'a> Context<'a, (Type, bool)> {
+  pub fn insert_type(&mut self, id: &'a str, r#type: Type, mutable: bool) {
     match (*self).scopes.iter_mut().last() {
-      Some(scope) => (*scope).elements.insert(id.to_string(), (r#type, mutable)),
+      Some(scope) => (*scope).elements.insert(id, (r#type, mutable)),
       None => unreachable!("Inserting into context without scopes"),
     };
   }
@@ -54,8 +54,8 @@ impl Context<(Type, bool)> {
   }
 }
 
-impl<T> Context<T> {
-  pub fn push(&mut self, scope: Scope<T>) {
+impl<'a, T> Context<'a, T> {
+  pub fn push(&mut self, scope: Scope<'a, T>) {
     self.scopes.push(scope);
   }
 

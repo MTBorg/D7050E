@@ -54,7 +54,7 @@ impl Compiler {
     );
   }
 
-  fn compile_expr(&self, expr: &Node, funcs: &HashMap<String, Func>) -> IntValue {
+  fn compile_expr(&self, expr: &Node, funcs: &HashMap<&'_ str, Func>) -> IntValue {
     match expr {
       Node::Number(n) => self.context.i32_type().const_int(*n as u64, false),
       Node::Var(name) => {
@@ -172,7 +172,7 @@ impl Compiler {
     &mut self,
     function: &FunctionValue,
     func_dec: &Func,
-    funcs: &HashMap<String, Func>,
+    funcs: &HashMap<&'_ str, Func>,
   ) {
     // Push a new variable scope
     self.variables.push(HashMap::new());
@@ -230,7 +230,7 @@ impl Compiler {
     &mut self,
     node: &Node,
     func: &FunctionValue,
-    funcs: &HashMap<String, Func>,
+    funcs: &HashMap<&'_ str, Func>,
     block: &BasicBlock,
   ) {
     match node {
@@ -281,7 +281,7 @@ impl Compiler {
     then_body: &Node,
     else_body: &Node,
     func: &FunctionValue,
-    funcs: &HashMap<String, Func>,
+    funcs: &HashMap<&'_ str, Func>,
   ) {
     let cond = self.compile_expr(condition, funcs);
 
@@ -316,7 +316,7 @@ impl Compiler {
     condition: &Node,
     then_body: &Node,
     parent_block: &FunctionValue,
-    funcs: &HashMap<String, Func>,
+    funcs: &HashMap<&'_ str, Func>,
   ) {
     let cond = self.compile_expr(condition, funcs);
 
@@ -346,7 +346,7 @@ impl Compiler {
     body_start: &Node,
     block: &BasicBlock,
     func: &FunctionValue,
-    funcs: &HashMap<String, Func>,
+    funcs: &HashMap<&'_ str, Func>,
   ) {
     // Push a new variable scope
     self.variables.push(HashMap::new());

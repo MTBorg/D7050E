@@ -1,13 +1,13 @@
-use crate::types::{func_param::FuncParam, _type::Type, variable::Variable};
+use crate::types::{_type::Type, func_param::FuncParam, variable::Variable};
 use std::collections::HashMap;
 
 #[derive(Debug)]
-pub struct Scope<T> {
-  pub elements: HashMap<String, T>,
+pub struct Scope<'a, T> {
+  pub elements: HashMap<&'a str, T>,
 }
 
-impl From<Vec<Variable>> for Scope<Variable> {
-  fn from(mut vars: Vec<Variable>) -> Self {
+impl<'a> From<Vec<Variable<'a>>> for Scope<'a, Variable<'a>> {
+  fn from(mut vars: Vec<Variable<'a>>) -> Self {
     let mut map = HashMap::new();
     map.reserve(vars.len());
     for var in vars.drain(..) {
@@ -20,8 +20,8 @@ impl From<Vec<Variable>> for Scope<Variable> {
   }
 }
 
-impl From<Vec<FuncParam>> for Scope<(Type, bool)> {
-  fn from(mut params: Vec<FuncParam>) -> Self {
+impl<'a> From<Vec<FuncParam<'a>>> for Scope<'a, (Type, bool)> {
+  fn from(mut params: Vec<FuncParam<'a>>) -> Self {
     let mut map = HashMap::new();
     map.reserve(params.len());
     for param in params.drain(..) {
@@ -34,7 +34,7 @@ impl From<Vec<FuncParam>> for Scope<(Type, bool)> {
   }
 }
 
-impl<T> Scope<T> {
+impl<'a, T> Scope<'a, T> {
   pub fn new() -> Self {
     Self {
       elements: HashMap::new(),

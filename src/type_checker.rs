@@ -11,17 +11,19 @@ use crate::{
 use std::collections::HashMap;
 
 #[allow(dead_code)]
-fn type_check(
-  node: &Node,
-  context: &mut Context<(Type, bool)>,
-  funcs: &HashMap<String, Func>,
-) -> Result<Option<(Type, bool)>, Box<dyn std::error::Error>> {
+fn type_check<'a>(
+  node: &Node<'a>,
+  context: &mut Context<'a, (Type, bool)>,
+  funcs: &HashMap<&'a str, Func<'a>>,
+) -> Result<Option<(Type, bool)>, Box<dyn std::error::Error + 'a>> {
   match node {
     Node::Number(_) => Ok(Some((Type::Int, false))),
     Node::Bool(_) => Ok(Some((Type::Bool, false))),
     Node::Var(var) => match context.get_var_type(&var) {
       Some((r#type, mutable)) => Ok(Some(((*r#type).clone(), *mutable))),
-      None => Err(Box::new(UnknownVarError { name: var.clone() })),
+      None => Err(Box::new(UnknownVarError {
+        name: var.to_string(),
+      })),
     },
     Node::Assign(var, expr, _) => {
       // Check the type of the right hand side of assignment
@@ -37,12 +39,12 @@ fn type_check(
         Some((r#type, mutable)) => {
           if !mutable {
             return Err(Box::new(TypeError::ImmutableAssignment {
-              var: var.clone(),
+              var: var.to_string(),
             }));
           }
           return if *r#type != expr_type {
             Err(Box::new(TypeError::AssignMissmatch {
-              var: var.clone(),
+              var: var.to_string(),
               r#type: r#type.clone(),
               expr_type: expr_type.clone(),
             }))
@@ -51,7 +53,9 @@ fn type_check(
           };
         }
         None => {
-          return Err(Box::new(UnknownVarError { name: var.clone() }));
+          return Err(Box::new(UnknownVarError {
+            name: var.to_string(),
+          }));
         }
       }
     }
@@ -133,7 +137,7 @@ fn type_check(
         Some(func) => func,
         None => {
           return Err(Box::new(UnknownFuncError {
-            func_name: func.clone(),
+            func_name: func.to_string(),
           }))
         }
       };
@@ -143,14 +147,14 @@ fn type_check(
         println!("arg: {}, param: {}", args.len(), func.params.len());
         if args.len() > func.params.len() {
           return Err(Box::new(TypeError::TooManyArgs {
-            func: func.name.clone(),
+            func: func.name.to_string(),
             expected: func.params.len(),
             received: args.len(),
           }));
         } else {
           let missing = func.params[args.len()..func.params.len()].to_vec();
           return Err(Box::new(TypeError::MissingArgs {
-            func: func.name.clone(),
+            func: func.name.to_string(),
             missing: missing,
           }));
         }
@@ -217,10 +221,10 @@ fn type_check(
   }
 }
 
-fn type_check_function(
-  func: &Func,
-  funcs: &HashMap<String, Func>,
-) -> Result<(), Vec<Box<dyn std::error::Error>>> {
+fn type_check_function<'a>(
+  func: &'a Func<'a>,
+  funcs: &HashMap<&'a str, Func<'a>>,
+) -> Result<(), Vec<Box<dyn std::error::Error + 'a>>> {
   let mut next_node = Some(&func.body_start);
   let mut errors: Vec<Box<dyn std::error::Error>> = vec![];
   let mut context: Context<(Type, bool)> = Context::from(func);
@@ -235,7 +239,7 @@ fn type_check_function(
     if let Node::Empty = next_node.unwrap() {
       if let Some(r#type) = func.ret_type.clone() {
         errors.push(Box::new(TypeError::MissingReturn {
-          func_name: func.name.clone(),
+          func_name: func.name.to_string(),
           ret_type: r#type.clone(),
         }));
         return Err(errors);
@@ -260,7 +264,7 @@ fn type_check_function(
   if let Some(r#type) = &func.ret_type {
     if !returned {
       errors.push(Box::new(TypeError::MissingReturn {
-        func_name: func.name.clone(),
+        func_name: func.name.to_string(),
         ret_type: (*r#type).clone(),
       }));
     }
@@ -273,9 +277,9 @@ fn type_check_function(
   };
 }
 
-pub fn type_check_program(
-  program: &Program,
-) -> Result<(), Vec<Box<dyn std::error::Error>>> {
+pub fn type_check_program<'a>(
+  program: &'a Program<'a>,
+) -> Result<(), Vec<Box<dyn std::error::Error + 'a>>> {
   let mut errors: Vec<Box<dyn std::error::Error>> = vec![];
 
   // Iterate over the values of the hashmap (i.e. the second element)
@@ -300,7 +304,7 @@ mod tests {
   #[test]
   pub fn test_number() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
@@ -315,7 +319,7 @@ mod tests {
   #[test]
   pub fn test_bool() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
@@ -330,7 +334,7 @@ mod tests {
   #[test]
   pub fn test_operation_int_int() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
@@ -354,7 +358,7 @@ mod tests {
   #[test]
   pub fn test_operation_int_bool() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
@@ -375,7 +379,7 @@ mod tests {
   #[test]
   pub fn test_operation_bool_int() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
@@ -396,7 +400,7 @@ mod tests {
   #[test]
   pub fn test_operation_bool_bool() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
@@ -420,21 +424,16 @@ mod tests {
   #[test]
   pub fn test_func_call_int() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
     let mut context = Context::from(&func_dec);
-    let mut funcs: HashMap<String, Func> = HashMap::new();
-    funcs.insert("foo".to_string(), func_dec);
+    let mut funcs: HashMap<&'_ str, Func> = HashMap::new();
+    funcs.insert("foo", func_dec);
     assert_eq!(
-      type_check(
-        &Node::FuncCall("foo".to_string(), vec!(), None),
-        &mut context,
-        &funcs
-      )
-      .unwrap(),
+      type_check(&Node::FuncCall("foo", vec!(), None), &mut context, &funcs).unwrap(),
       Some((Type::Int, false))
     );
   }
@@ -442,21 +441,16 @@ mod tests {
   #[test]
   pub fn test_func_call_bool() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: Some(Type::Bool),
       body_start: Node::Empty,
     };
     let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
-    funcs.insert("foo".to_string(), func_dec);
+    funcs.insert("foo", func_dec);
     assert_eq!(
-      type_check(
-        &Node::FuncCall("foo".to_string(), vec!(), None),
-        &mut context,
-        &funcs
-      )
-      .unwrap(),
+      type_check(&Node::FuncCall("foo", vec!(), None), &mut context, &funcs).unwrap(),
       Some((Type::Bool, false))
     );
   }
@@ -464,9 +458,9 @@ mod tests {
   #[test]
   pub fn test_func_call_args_int() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![FuncParam {
-        name: "a".to_string(),
+        name: "a",
         _type: Type::Int,
         mutable: false,
       }],
@@ -475,10 +469,10 @@ mod tests {
     };
     let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
-    funcs.insert("foo".to_string(), func_dec);
+    funcs.insert("foo", func_dec);
     assert_eq!(
       type_check(
-        &Node::FuncCall("foo".to_string(), vec!(Node::Number(2)), None),
+        &Node::FuncCall("foo", vec!(Node::Number(2)), None),
         &mut context,
         &funcs
       )
@@ -490,9 +484,9 @@ mod tests {
   #[test]
   pub fn test_func_call_args_bool() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![FuncParam {
-        name: "a".to_string(),
+        name: "a",
         _type: Type::Bool,
         mutable: false,
       }],
@@ -501,10 +495,10 @@ mod tests {
     };
     let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
-    funcs.insert("foo".to_string(), func_dec);
+    funcs.insert("foo", func_dec);
     assert_eq!(
       type_check(
-        &Node::FuncCall("foo".to_string(), vec!(Node::Bool(true)), None),
+        &Node::FuncCall("foo", vec!(Node::Bool(true)), None),
         &mut context,
         &funcs
       )
@@ -516,9 +510,9 @@ mod tests {
   #[test]
   pub fn test_func_call_args_invalid_type() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![FuncParam {
-        name: "a".to_string(),
+        name: "a",
         _type: Type::Int,
         mutable: false,
       }],
@@ -527,9 +521,9 @@ mod tests {
     };
     let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
-    funcs.insert("foo".to_string(), func_dec);
+    funcs.insert("foo", func_dec);
     assert!(!type_check(
-      &Node::FuncCall("foo".to_string(), vec!(Node::Bool(true)), None),
+      &Node::FuncCall("foo", vec!(Node::Bool(true)), None),
       &mut context,
       &funcs
     )
@@ -539,14 +533,14 @@ mod tests {
   #[test]
   pub fn test_func_return_int() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
     let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
-    funcs.insert("foo".to_string(), func_dec);
+    funcs.insert("foo", func_dec);
     assert!(type_check(
       &Node::Return(Box::new(Node::Number(5)), None),
       &mut context,
@@ -558,14 +552,14 @@ mod tests {
   #[test]
   pub fn test_func_return_int_expecting_bool() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: Some(Type::Bool),
       body_start: Node::Empty,
     };
     let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
-    funcs.insert("foo".to_string(), func_dec);
+    funcs.insert("foo", func_dec);
     assert!(!type_check(
       &Node::Return(Box::new(Node::Number(5)), None),
       &mut context,
@@ -577,14 +571,14 @@ mod tests {
   #[test]
   pub fn test_func_return_bool() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: Some(Type::Bool),
       body_start: Node::Empty,
     };
     let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
-    funcs.insert("foo".to_string(), func_dec);
+    funcs.insert("foo", func_dec);
     assert!(type_check(
       &Node::Return(Box::new(Node::Bool(true)), None),
       &mut context,
@@ -596,9 +590,9 @@ mod tests {
   #[test]
   pub fn test_func_missing_arg() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![FuncParam {
-        name: "a".to_string(),
+        name: "a",
         _type: Type::Int,
         mutable: true,
       }],
@@ -607,9 +601,9 @@ mod tests {
     };
     let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
-    funcs.insert("foo".to_string(), func_dec);
+    funcs.insert("foo", func_dec);
     assert!(!type_check(
-      &Box::new(Node::FuncCall("foo".to_string(), vec!(), None)),
+      &Box::new(Node::FuncCall("foo", vec!(), None)),
       &mut context,
       &funcs
     )
@@ -619,20 +613,16 @@ mod tests {
   #[test]
   pub fn test_func_too_many_args() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
     let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
-    funcs.insert("foo".to_string(), func_dec);
+    funcs.insert("foo", func_dec);
     assert!(!type_check(
-      &Box::new(Node::FuncCall(
-        "foo".to_string(),
-        vec!(Node::Bool(false)),
-        None
-      )),
+      &Box::new(Node::FuncCall("foo", vec!(Node::Bool(false)), None)),
       &mut context,
       &funcs
     )
@@ -642,14 +632,14 @@ mod tests {
   #[test]
   pub fn test_func_return_bool_expecting_int() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
     let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
-    funcs.insert("foo".to_string(), func_dec);
+    funcs.insert("foo", func_dec);
     assert!(!type_check(
       &Node::Return(Box::new(Node::Bool(false)), None),
       &mut context,
@@ -661,27 +651,24 @@ mod tests {
   #[test]
   pub fn test_func_return_func_call() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
     let func_dec_2 = Func {
-      name: "bar".to_string(),
+      name: "bar",
       params: vec![],
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
     let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
-    funcs.insert("foo".to_string(), func_dec);
-    funcs.insert("bar".to_string(), func_dec_2);
+    funcs.insert("foo", func_dec);
+    funcs.insert("bar", func_dec_2);
 
     assert!(type_check(
-      &Node::Return(
-        Box::new(Node::FuncCall("bar".to_string(), vec!(), None)),
-        None
-      ),
+      &Node::Return(Box::new(Node::FuncCall("bar", vec!(), None)), None),
       &mut context,
       &funcs
     )
@@ -691,14 +678,14 @@ mod tests {
   #[test]
   pub fn test_return_with_missing_return_type() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: None,
       body_start: Node::Empty,
     };
     let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
-    funcs.insert("foo".to_string(), func_dec);
+    funcs.insert("foo", func_dec);
     assert!(!type_check(
       &Node::Return(Box::new(Node::Number(2)), None),
       &mut context,
@@ -710,18 +697,18 @@ mod tests {
   #[test]
   pub fn can_assign_to_mutable() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: None,
       body_start: Node::Empty,
     };
     let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
-    funcs.insert("foo".to_string(), func_dec.clone());
+    funcs.insert("foo", func_dec.clone());
     context.push(Scope::from(func_dec.params));
     context.insert_type("a", Type::Int, true);
     assert!(type_check(
-      &Node::Assign("a".to_string(), Box::new(Node::Number(3)), None),
+      &Node::Assign("a", Box::new(Node::Number(3)), None),
       &mut context,
       &funcs
     )
@@ -731,18 +718,18 @@ mod tests {
   #[test]
   pub fn can_not_assign_to_mutable() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: None,
       body_start: Node::Empty,
     };
     let mut context = Context::from(&func_dec);
     let mut funcs = HashMap::new();
-    funcs.insert("foo".to_string(), func_dec.clone());
+    funcs.insert("foo", func_dec.clone());
     context.push(Scope::from(func_dec.params));
     context.insert_type("a", Type::Int, false);
     assert!(!type_check(
-      &Node::Assign("a".to_string(), Box::new(Node::Number(3)), None),
+      &Node::Assign("a", Box::new(Node::Number(3)), None),
       &mut context,
       &funcs
     )
@@ -752,14 +739,14 @@ mod tests {
   #[test]
   pub fn no_return_in_returning_function() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: Some(Type::Int),
       body_start: Node::Empty,
     };
     let mut context = Context::from(&func_dec);
-    let mut funcs: HashMap<String, Func> = HashMap::new();
-    funcs.insert("foo".to_string(), func_dec.clone());
+    let mut funcs: HashMap<&'_ str, Func> = HashMap::new();
+    funcs.insert("foo", func_dec.clone());
     context.push(Scope::from(func_dec.params.clone()));
     context.insert_type("a", Type::Int, false);
     assert!(!type_check_function(&func_dec, &funcs).is_ok());
@@ -768,14 +755,14 @@ mod tests {
   #[test]
   pub fn empty_function_no_ret_type() {
     let func_dec = Func {
-      name: "foo".to_string(),
+      name: "foo",
       params: vec![],
       ret_type: None,
       body_start: Node::Empty,
     };
     let mut context = Context::from(&func_dec);
-    let mut funcs: HashMap<String, Func> = HashMap::new();
-    funcs.insert("foo".to_string(), func_dec.clone());
+    let mut funcs: HashMap<&'_ str, Func> = HashMap::new();
+    funcs.insert("foo", func_dec.clone());
     context.push(Scope::from(func_dec.params.clone()));
     context.insert_type("a", Type::Int, false);
     assert!(type_check_function(&func_dec, &funcs).is_ok());

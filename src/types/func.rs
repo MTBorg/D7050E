@@ -9,19 +9,19 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub struct Func {
-  pub name: String,
-  pub params: Vec<FuncParam>,
+pub struct Func<'a> {
+  pub name: &'a str,
+  pub params: Vec<FuncParam<'a>>,
   pub ret_type: Option<Type>,
-  pub body_start: Node,
+  pub body_start: Node<'a>,
 }
 
-impl Func {
+impl<'a> Func<'a> {
   pub fn execute(
     &self,
-    args: &Vec<Node>,
-    funcs: &HashMap<String, Func>,
-    context: &mut Context<Variable>,
+    args: &'a Vec<Node<'a>>,
+    funcs: &'a HashMap<&str, Func>,
+    context: &'a mut Context<'a, Variable<'a>>,
   ) -> Option<Value> {
     self.validate_arguments(args);
 

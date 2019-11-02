@@ -2,7 +2,7 @@ use crate::types::{_type::Type, func::Func, func_param::FuncParam, opcode::Opcod
 use std::error;
 
 #[derive(Debug)]
-pub enum TypeError {
+pub enum TypeError<'a> {
   OperatorMissmatch {
     op: Opcode,
     type_left: Option<Type>,
@@ -10,7 +10,7 @@ pub enum TypeError {
   },
   ArgMissmatch {
     arg_type: Option<Type>,
-    param: FuncParam,
+    param: FuncParam<'a>,
   },
   TooManyArgs {
     func: String,
@@ -19,11 +19,11 @@ pub enum TypeError {
   },
   MissingArgs {
     func: String,
-    missing: Vec<FuncParam>,
+    missing: Vec<FuncParam<'a>>,
   },
   NonTypeExpression,
   InvalidReturnType {
-    func: Func,
+    func: Func<'a>,
     expr_type: Type,
   },
   InvalidNode,
@@ -45,7 +45,7 @@ pub enum TypeError {
   },
 }
 
-impl std::fmt::Display for TypeError {
+impl std::fmt::Display for TypeError<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     let message = match self {
       TypeError::OperatorMissmatch {
@@ -120,7 +120,7 @@ impl std::fmt::Display for TypeError {
         let mut missing_string: String = "".to_string();
         let missing_length = missing.len();
         for (i, param) in missing.iter().enumerate() {
-          missing_string += &(param.name.clone()
+          missing_string += &(param.name.to_string()
             + ": "
             + param._type.to_str()
             + if i != missing_length - 1 { "," } else { "" });
@@ -135,7 +135,7 @@ impl std::fmt::Display for TypeError {
   }
 }
 
-impl error::Error for TypeError {
+impl error::Error for TypeError<'_> {
   fn source(&self) -> Option<&(dyn error::Error + 'static)> {
     None
   }

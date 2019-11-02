@@ -1,4 +1,4 @@
-grammar;
+grammar<'a>();
 
 use std::{
 	str::FromStr,
@@ -15,11 +15,11 @@ use crate::{
 	}
 };
 
-pub File: HashMap<String, Func> = {
+pub File: HashMap<&'a str, Func<'a>> = {
 	<mut func_decs:FuncDec+> => {
 		let mut hmap = HashMap::new();
 		for func_dec in func_decs.drain(..){
-			hmap.insert(func_dec.name.to_string(), func_dec);
+			hmap.insert(func_dec.name, func_dec);
 		}
 		hmap
 	}
@@ -30,7 +30,7 @@ Identifier: String = {
 	r"_*[a-z]+\w*" => <>.to_string()
 }
 
-Expr: Box<Node> = {
+Expr: Box<Node<'a>> = {
     Expr ExprOp Factor => Box::new(Node::Op(<>)),
     Expr LogOp Factor => Box::new(Node::Op(<>)),
     Factor,
@@ -46,7 +46,7 @@ ExprOp: Opcode = {
     "-" => Opcode::Sub,
 };
 
-Factor: Box<Node> = {
+Factor: Box<Node<'a>> = {
     Factor FactorOp Term => Box::new(Node::Op(<>)),
     Factor RelOp Term => Box::new(Node::Op(<>)),
     Term,
@@ -66,7 +66,7 @@ RelOp: Opcode = {
 	"<" => Opcode::Lneq
 };
 
-Term: Box<Node> = {
+Term: Box<Node<'a>> = {
     Num, 
 		Var,
 		Bool,
@@ -74,26 +74,26 @@ Term: Box<Node> = {
     "(" <Expr> ")"
 };
 
-Num: Box<Node> = {
+Num: Box<Node<'a>> = {
     r"-?[0-9]+" => Box::new(Node::Number(i32::from_str(<>).unwrap()))
 };
 
-Var: Box<Node> = {
-	Identifier => Box::new(Node::Var(<>))
+Var: Box<Node<'a>> = {
+	Identifier => Box::new(Node::Var(&<>))
 };
 
-FuncCall: Box<Node> = {
+FuncCall: Box<Node<'a>> = {
 	<func_name:Identifier> "(" <args:FuncArgs> ")" =>	
 		Box::new(
 			Node::FuncCall(
-				func_name,
+				&func_name,
 				args,
 				None
 			)
 		)
 };
 
-FuncArgs: Vec<Node> = {
+FuncArgs: Vec<Node<'a>> = {
 	<args:(<FuncArg> ",")*> <arg:FuncArg?> => match arg{
 		Some(arg) => {
 			let mut args = args;
@@ -104,15 +104,15 @@ FuncArgs: Vec<Node> = {
 	}
 };
 
-FuncArg: Node = {
+FuncArg: Node<'a> = {
 	Expr => *<>
 };
 	
 FuncName = Identifier;
 
-FuncParam: FuncParam = {
+FuncParam: FuncParam<'a> = {
 	<name:Identifier> ":" <mutable:"mut"?> <_type:Type> => FuncParam{
-		name: name,
+		name: &name,
 		_type: _type,
 		mutable: match mutable{
 			Some(_) => true,
@@ -121,7 +121,7 @@ FuncParam: FuncParam = {
 	}
 };
 
-FuncParams: Vec<FuncParam> = {
+FuncParams: Vec<FuncParam<'a>> = {
 	<params:(<FuncParam> ",")*> <param:FuncParam?> => match param{
 		Some(param) => {
 			let mut params = params;
@@ -132,32 +132,32 @@ FuncParams: Vec<FuncParam> = {
 	}
 };
 
-FuncDec: Func = {
+FuncDec: Func<'a> = {
 	"fn" <name:FuncName> "(" <params:FuncParams> ")" <ret_type:("->" <Type>)?> <body_start:Body> =>
 	Func{
-		name: name,
+		name: &name,
 		params: params,
 		ret_type: ret_type,
 		body_start: *body_start
 	}
 };
 
-Assign: Box<Node> = {
+Assign: Box<Node<'a>> = {
 	<id:Identifier> "=" <expr:Expr> ";" =>
 		Box::new(
 			Node::Assign(
-			id,
+			&id,
 			expr,
 			None
 			)
 		)
 };
 
-Let: Box<Node> = {
+Let: Box<Node<'a>> = {
 	"let" <mutable:"mut"?> <id:Identifier> <_type:(":" <Type>)?> "=" <expr:Expr> ";"=> 
 		Box::new(
 			Node::Let(
-				id,
+				&id,
 				_type,
 				if let Some(_) = mutable {true} else {false},
 				expr,
@@ -166,7 +166,7 @@ Let: Box<Node> = {
 		),
 };
 
-Instruction: Box<Node> = {
+Instruction: Box<Node<'a>> = {
 	Let,
 	Assign,
 	If,
@@ -176,7 +176,7 @@ Instruction: Box<Node> = {
 	Print
 };
 
-Instructions: Box<Node> = {
+Instructions: Box<Node<'a>> = {
 	<mut i1:Instruction> <i2:Instructions?> => match i2{
 		Some(node) => {
 			i1.attach_right_most_child(*node);
@@ -188,14 +188,14 @@ Instructions: Box<Node> = {
 	}
 };
 
-Body: Box<Node> = {
+Body: Box<Node<'a>> = {
 	"{" <Instructions?> "}" => match <>{
 		Some(node) => node,
 		None => Box::new(Node::Empty)
 	}
 };
 
-If: Box<Node> = {
+If: Box<Node<'a>> = {
 	"if" <expr:Expr> <body:Body> => Box::new(
 		Node::If(
 			expr,
@@ -214,7 +214,7 @@ If: Box<Node> = {
 	)
 };
 
-Bool: Box<Node> = {
+Bool: Box<Node<'a>> = {
 	"true" => Box::new(Node::Bool(true)),
 	"false" => Box::new(Node::Bool(false))
 };
@@ -224,13 +224,13 @@ Type: Type = {
 	"i32" => Type::Int,
 }
 
-Return: Box<Node> = {
+Return: Box<Node<'a>> = {
 	"return" <Expr> ";" => Box::new(Node::Return(<>, None)),
 }
 
-Print: Box<Node> = {
+Print: Box<Node<'a>> = {
 	"print " <Expr> => Box::new(Node::Print(<>, None))
 };
-Debug_Context: Box<Node> = {
+Debug_Context: Box<Node<'a>> = {
 	"$DEBUG_CONTEXT" => Box::new(Node::DebugContext(None))
 };

@@ -28,7 +28,7 @@ fn get_error_line_from_byte_offset(
   return (line_number, error_line, error_offset);
 }
 
-pub fn parse(file: &str) -> Result<HashMap<String, Func>, ParseError> {
+pub fn parse<'a>(file: &str) -> Result<HashMap<&'a str, Func>, ParseError> {
   let res = crate::parsing::grammar::FileParser::new().parse(file);
   return match res {
     Ok(s) => Ok(s),
@@ -36,14 +36,16 @@ pub fn parse(file: &str) -> Result<HashMap<String, Func>, ParseError> {
       lalrpop_util::ParseError::InvalidToken { location } => {
         let (err_line_num, err_string, err_offset) =
           get_error_line_from_byte_offset(&file, location);
-        return Err(ParseError::InvalidToken{location: err_offset,
-                line: err_string,
-                line_num: err_line_num,
-                });
+        return Err(ParseError::InvalidToken {
+          location: err_offset,
+          line: err_string,
+          line_num: err_line_num,
+        });
       }
       lalrpop_util::ParseError::UnrecognizedToken { token, expected } => {
         let (start, token, end) = token;
-        let (line_num, err_string, err_offset1) = get_error_line_from_byte_offset(&file, start);
+        let (line_num, err_string, err_offset1) =
+          get_error_line_from_byte_offset(&file, start);
         let (_, _, err_offset2) = get_error_line_from_byte_offset(&file, end);
         return Err(ParseError::UnrecognizedToken {
           start: err_offset1,

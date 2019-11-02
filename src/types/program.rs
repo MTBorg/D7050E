@@ -6,12 +6,12 @@ use crate::{
   types::{context::Context, func::Func, value::Value},
 };
 
-pub struct Program {
-  pub funcs: HashMap<String, Func>,
+pub struct Program<'a> {
+  pub funcs: HashMap<&'a str, Func<'a>>,
   file: String,
 }
 
-impl std::convert::TryFrom<&Path> for Program {
+impl std::convert::TryFrom<&Path> for Program<'_> {
   type Error = ParseError;
   fn try_from(path: &Path) -> Result<Self, Self::Error> {
     let mut file = match File::open(path) {
@@ -35,7 +35,7 @@ impl std::convert::TryFrom<&Path> for Program {
   }
 }
 
-impl Program {
+impl<'a> Program<'a> {
   pub fn run(&self) -> Option<Value> {
     match self.funcs.get("main") {
       Some(main) => main.execute(&vec![], &self.funcs, &mut Context::from(main)),
@@ -43,7 +43,7 @@ impl Program {
     }
   }
 
-  fn parse(&mut self) -> Result<(), ParseError> {
+  fn parse(&'a mut self) -> Result<(), ParseError> {
     match parse(&self.file) {
       Ok(funcs) => {
         self.funcs = funcs;
