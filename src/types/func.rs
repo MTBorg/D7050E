@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, convert::TryInto};
 
 use crate::{
   interpreter::eval,
@@ -28,18 +28,13 @@ impl Func {
     // Evaluate argument nodes and push the result to the functions scope
     let mut _args: Vec<Variable> = vec![];
     for (node, param) in (*args).iter().zip(self.params.iter()) {
-      let val = eval(node, context, funcs).to_value();
-      match val {
-        Ok(val) => {
-          _args.push(Variable {
-            name: param.name.clone(),
-            value: val,
-          });
-        }
-        Err(e) => {
-          panic!(e);
-        }
-      };
+      //Convert the node to a value
+      let val: Value = eval(node, context, funcs).try_into().unwrap();
+
+      _args.push(Variable {
+        name: param.name.clone(),
+        value: val,
+      });
     }
     let mut context: Context<Variable> = Context::from(self);
     context.push(Scope::from(_args));

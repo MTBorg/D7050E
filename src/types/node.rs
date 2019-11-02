@@ -1,4 +1,4 @@
-use crate::types::{opcode::Opcode, _type::Type, value::Value};
+use crate::types::{_type::Type, opcode::Opcode, value::Value};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Node {
@@ -41,14 +41,6 @@ impl Node {
       | Node::DebugContext(ref mut right_most) => *right_most = Some(Box::new(child)),
       _ => panic!("Failed to attach right most child (unknown nodetype)!"),
     };
-  }
-
-  pub fn to_value(&self) -> Result<Value, &'static str> {
-    match self {
-      Node::Bool(b) => Ok(Value::Bool(*b)),
-      Node::Number(n) => Ok(Value::Int(*n)),
-      _ => Err("Cannot convert node to value"),
-    }
   }
 
   pub fn get_next_instruction(&self) -> Option<&Node> {

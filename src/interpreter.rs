@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, convert::TryInto};
 
 use crate::types::{
   context::Context, func::Func, node::Node, opcode::Opcode, scope::Scope, value::Value,
@@ -112,7 +112,7 @@ pub fn eval(
       }
     }
     Node::Let(id, r#type, _, expr, next_instr) => {
-      let val = eval(expr, context, funcs).to_value().unwrap();
+      let val: Value = eval(expr, context, funcs).try_into().unwrap();
 
       if let Some(r#type) = r#type {
         let expr_type = (&val).into();
@@ -132,7 +132,7 @@ pub fn eval(
       eval_next_instr!(next_instr, context, funcs)
     }
     Node::Assign(id, expr, next_instr) => {
-      let val = match eval(expr, context, funcs).to_value() {
+      let val: Value = match eval(expr, context, funcs).try_into() {
         Ok(val) => val,
         Err(e) => panic!("Invalid expression in assign statement: {}", e),
       };
