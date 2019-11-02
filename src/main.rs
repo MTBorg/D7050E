@@ -35,7 +35,7 @@ fn main() {
     println!(
       "Interpreter finished with exit code {}",
       match program.run() {
-        Some(value) => value.to_string(),
+        Some(value) => (&value).into(),
         None => 0.to_string(),
       }
     )
