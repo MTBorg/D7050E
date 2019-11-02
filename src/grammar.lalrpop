@@ -179,7 +179,7 @@ Instruction: Box<Node> = {
 Instructions: Box<Node> = {
 	<mut i1:Instruction> <i2:Instructions?> => match i2{
 		Some(node) => {
-			i1.attach_right_most_child(*node);
+			i1.attach_next_instruction(*node);
 			i1
 		},
 		None => {

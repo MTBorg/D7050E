@@ -26,11 +26,11 @@ pub enum Node {
 }
 
 impl Node {
-  /// Attach a node to the right most child of a node.
-  ///
-  /// # Arguments
-  /// * `child` - The child node to attach.
-  pub fn attach_right_most_child(&mut self, child: Node) {
+  // Attach the next instruction node to a node.
+  //
+  // # Arguments
+  // * `next_instr` - The child node to attach.
+  pub fn attach_next_instruction(&mut self, next_instr: Node) {
     match *self {
       Node::Let(_, _, _, _, ref mut right_most)
       | Node::FuncCall(_, _, ref mut right_most)
@@ -38,7 +38,9 @@ impl Node {
       | Node::If(_, _, _, ref mut right_most)
       | Node::Return(_, ref mut right_most)
       | Node::Print(_, ref mut right_most)
-      | Node::DebugContext(ref mut right_most) => *right_most = Some(Box::new(child)),
+      | Node::DebugContext(ref mut right_most) => {
+        *right_most = Some(Box::new(next_instr))
+      }
       _ => panic!("Failed to attach right most child (unknown nodetype)!"),
     };
   }
