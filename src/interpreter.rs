@@ -122,9 +122,20 @@ pub fn eval(
         },
       }
     }
-    //TODO: Check type (second parameter)
-    Node::Let(id, _, _, expr, next_instr) => {
+    Node::Let(id, r#type, _, expr, next_instr) => {
       let val = eval(expr, context, funcs).to_value().unwrap();
+
+      if let Some(r#type) = r#type {
+        let expr_type = (&val).into();
+        if *r#type != expr_type {
+          panic!(
+            "Specified type {} for variable {} does not match type {} of expression",
+            r#type.to_str(),
+            id,
+            expr_type.to_str()
+          );
+        }
+      }
       context.insert_variable(Variable {
         name: id.to_string(),
         value: val,
