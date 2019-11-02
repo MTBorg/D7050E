@@ -160,7 +160,7 @@ impl Compiler {
     // Compile the functions
     for (_, func) in program.funcs.iter() {
       let function = self.module.get_function(&func.name).unwrap();
-      self.compile_func(&function, &func, &func.body_start, &program.funcs);
+      self.compile_func(&function, &func, &program.funcs);
     }
 
     let temp = unsafe { execution_engine.get_function("main").ok() };
@@ -172,7 +172,6 @@ impl Compiler {
     &mut self,
     function: &FunctionValue,
     func_dec: &Func,
-    func_body_start: &Node,
     funcs: &HashMap<String, Func>,
   ) {
     // Push a new variable scope
@@ -188,7 +187,7 @@ impl Compiler {
       self.builder.build_store(alloca, arg);
     }
 
-    self.compile_block(func_body_start, &func_block, function, funcs);
+    self.compile_block(&func_dec.body_start, &func_block, function, funcs);
 
     //If the function is of type void we still need to make sure to build a return
     if let None = func_dec.ret_type {
