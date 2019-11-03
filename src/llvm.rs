@@ -163,8 +163,8 @@ impl Compiler {
       self.compile_func(&function, &func, &program.funcs);
     }
 
+    // self.module.print_to_stderr(); //Uncomment this to get the llvm-ir
     let temp = unsafe { execution_engine.get_function("main").ok() };
-    self.module.print_to_stderr(); //Uncomment this to get the llvm-ir
     return temp;
   }
 
