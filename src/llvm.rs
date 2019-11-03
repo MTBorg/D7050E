@@ -790,7 +790,7 @@ mod tests {
 
   #[test]
   #[should_panic]
-  fn test() {
+  fn test_function_argument_scope() {
     let program =
       Program::try_from(Path::new("tests/samples/function_argument_scope.rs")).unwrap();
 
