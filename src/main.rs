@@ -34,7 +34,7 @@ fn main() {
   if let Ok(_) = type_res {
     println!(
       "Interpreter finished with exit code {}",
-      match program.run() {
+			 match program.interpret() {
         Some(value) => (&value).into(),
         None => 0.to_string(),
       }

@@ -36,7 +36,7 @@ impl std::convert::TryFrom<&Path> for Program {
 }
 
 impl Program {
-  pub fn run(&self) -> Option<Value> {
+  pub fn interpret(&self) -> Option<Value> {
     match self.funcs.get("main") {
       Some(main) => main.execute(&vec![], &self.funcs, &mut Context::from(main)),
       None => panic!("No main function found"),
@@ -64,20 +64,20 @@ mod tests {
   #[should_panic]
   fn test_missing_main() {
     let program = Program::try_from(Path::new("tests/samples/missing_main.rs")).unwrap();
-    program.run();
+    program.interpret();
   }
 
   #[test]
   fn test_empty_main() {
     let program = Program::try_from(Path::new("tests/samples/empty_main.rs")).unwrap();
-    assert!(program.run().is_none());
+    assert!(program.interpret().is_none());
   }
 
   #[test]
   fn test_return_in_main() {
     let program =
       Program::try_from(Path::new("tests/samples/return_in_main.rs")).unwrap();
-    assert!(match program.run() {
+    assert!(match program.interpret() {
       Some(value) => match value {
         Value::Int(3982) => true,
         _ => false,
@@ -91,21 +91,21 @@ mod tests {
     let program =
       Program::try_from(Path::new("tests/samples/if_statement_true.rs")).unwrap();
     type_check_program(&program).unwrap();
-    assert_eq!(program.run().unwrap(), Value::Int(5))
+    assert_eq!(program.interpret().unwrap(), Value::Int(5))
   }
 
   #[test]
   fn test_if_else() {
     let program = Program::try_from(Path::new("tests/samples/if_else.rs")).unwrap();
     type_check_program(&program).unwrap();
-    assert_eq!(program.run().unwrap(), Value::Int(2))
+    assert_eq!(program.interpret().unwrap(), Value::Int(2))
   }
 
   #[test]
   fn test_assign() {
     let program = Program::try_from(Path::new("tests/samples/assign.rs")).unwrap();
     type_check_program(&program).unwrap();
-    assert_eq!(program.run().unwrap(), Value::Int(6))
+    assert_eq!(program.interpret().unwrap(), Value::Int(6))
   }
 
   #[test]
@@ -115,7 +115,7 @@ mod tests {
     if let Err(e) = type_check_program(&program) {
       panic!("{:?}", e);
     }
-    assert_eq!(program.run().unwrap(), Value::Int(34))
+    assert_eq!(program.interpret().unwrap(), Value::Int(34))
   }
 
   #[test]
@@ -123,7 +123,7 @@ mod tests {
     let program =
       Program::try_from(Path::new("tests/samples/nested_function_calls.rs")).unwrap();
     type_check_program(&program).unwrap();
-    assert_eq!(program.run().unwrap(), Value::Int(6))
+    assert_eq!(program.interpret().unwrap(), Value::Int(6))
   }
 
   #[test]
@@ -131,7 +131,7 @@ mod tests {
     let program =
       Program::try_from(Path::new("tests/samples/type_inference_i32.rs")).unwrap();
     type_check_program(&program).unwrap();
-    assert_eq!(program.run().unwrap(), Value::Int(34))
+    assert_eq!(program.interpret().unwrap(), Value::Int(34))
   }
 
   #[test]
@@ -139,7 +139,7 @@ mod tests {
     let program =
       Program::try_from(Path::new("tests/samples/type_inference_bool.rs")).unwrap();
     type_check_program(&program).unwrap();
-    assert_eq!(program.run().unwrap(), Value::Bool(true))
+    assert_eq!(program.interpret().unwrap(), Value::Bool(true))
   }
 
   #[test]
@@ -147,7 +147,7 @@ mod tests {
     let program =
       Program::try_from(Path::new("tests/samples/shadowing_return_shadowed.rs")).unwrap();
     type_check_program(&program).unwrap();
-    assert_eq!(program.run().unwrap(), Value::Int(4))
+    assert_eq!(program.interpret().unwrap(), Value::Int(4))
   }
 
   #[test]
@@ -155,6 +155,6 @@ mod tests {
     let program =
       Program::try_from(Path::new("tests/samples/shadowing_return_original.rs")).unwrap();
     type_check_program(&program).unwrap();
-    assert_eq!(program.run().unwrap(), Value::Int(14))
+    assert_eq!(program.interpret().unwrap(), Value::Int(14))
   }
 }
