@@ -38,21 +38,21 @@ fn main() {
         Some(value) => (&value).into(),
         None => 0.to_string(),
       }
-    )
+    );
+    let mut compiler = Compiler::new();
+
+    let main = compiler
+      .compile_program(&program)
+      .ok_or("Unable to JIT compile program")
+      .unwrap();
+
+    unsafe {
+      println!("Program exited with exit code {}", main.call());
+    }
   } else if let Err(errors) = type_res {
     print_error_header();
     for error in errors.iter() {
       println!("- {}", error);
     }
-  }
-  let mut compiler = Compiler::new();
-
-  let main = compiler
-    .compile_program(&program)
-    .ok_or("Unable to JIT compile program")
-    .unwrap();
-
-  unsafe {
-    println!("Program exited with exit code {}", main.call());
   }
 }
