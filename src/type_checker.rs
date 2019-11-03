@@ -87,6 +87,7 @@ fn type_check(
         }
       } else {
         Err(Box::new(TypeError::OperatorMissmatch {
+          expr: node.clone(),
           op: (*op).clone(),
           type_left: if let Some(r#type) = type1 {
             Some(r#type)

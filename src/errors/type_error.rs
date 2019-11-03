@@ -1,9 +1,12 @@
-use crate::types::{_type::Type, func::Func, func_param::FuncParam, opcode::Opcode};
+use crate::types::{
+  _type::Type, func::Func, func_param::FuncParam, node::Node, opcode::Opcode,
+};
 use std::error;
 
 #[derive(Debug)]
 pub enum TypeError {
   OperatorMissmatch {
+    expr: Node,
     op: Opcode,
     type_left: Option<Type>,
     type_right: Option<Type>,
@@ -49,11 +52,12 @@ impl std::fmt::Display for TypeError {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     let message = match self {
       TypeError::OperatorMissmatch {
+        expr,
         op,
         type_left,
         type_right,
       } => format!(
-        "Invalid types for operand {} (left: {}, right: {})",
+        "Invalid types for operand {} (left: {}, right: {}) in expression: \n\t{}",
         op.to_str(),
         match &type_left {
           Some(r#type) => r#type.to_str(),
@@ -62,7 +66,8 @@ impl std::fmt::Display for TypeError {
         match &type_right {
           Some(r#type) => r#type.to_str(),
           None => "void",
-        }
+        },
+        expr.expr_into_string()
       ),
       TypeError::ArgMissmatch { arg_type, param } => format!(
         "Argument type ({}) does not match parameter {}'s type ({})",

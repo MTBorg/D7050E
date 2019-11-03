@@ -1,4 +1,4 @@
-use crate::types::{_type::Type, opcode::Opcode, value::Value};
+use crate::types::{_type::Type, opcode::Opcode};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Node {
@@ -58,6 +58,31 @@ impl Node {
         _ => None,
       },
       _ => unreachable!("Cannot get next instruction from unknown node type"),
+    }
+  }
+
+  pub fn expr_into_string(&self) -> String {
+    match self {
+      Node::Number(i) => i.to_string(),
+      Node::Bool(b) => b.to_string(),
+      Node::Var(name) => name.clone(),
+      Node::Op(left, op, right) => format!(
+        "{} {} {}",
+        //If the left side is an operation add parenthesis
+        if let Node::Op(..) = **left {
+          format!("({})", left.expr_into_string())
+        } else {
+          format!("{}", left.expr_into_string())
+        },
+        op.to_str(),
+        //If the right side is an operation add parenthesis
+        if let Node::Op(..) = **right {
+          format!("({})", right.expr_into_string())
+        } else {
+          format!("{}", right.expr_into_string())
+        },
+      ),
+      _ => panic!("Cannot convert node to expression: {:#?}", self),
     }
   }
 }
