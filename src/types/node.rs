@@ -16,6 +16,8 @@ pub enum Node {
   Op(Box<Node>, Opcode, Box<Node>),
   // Condition, then body, else_body, next instruction
   If(Box<Node>, Box<Node>, Option<Box<Node>>, Option<Box<Node>>),
+  // Condition, then body, next instruction
+  While(Box<Node>, Box<Node>, Option<Box<Node>>),
   // Expression, next instruction
   Return(Box<Node>, Option<Box<Node>>),
   // Expression, next instruction
@@ -38,6 +40,7 @@ impl Node {
       | Node::If(.., ref mut right_most)
       | Node::Return(.., ref mut right_most)
       | Node::Print(.., ref mut right_most)
+      | Node::While(.., ref mut right_most)
       | Node::DebugContext(ref mut right_most) => {
         *right_most = Some(Box::new(next_instr))
       }
@@ -53,6 +56,7 @@ impl Node {
       | Node::If(.., ref right_most)
       | Node::Return(.., ref right_most)
       | Node::Print(.., ref right_most)
+      | Node::While(.., ref right_most)
       | Node::DebugContext(ref right_most) => match right_most {
         Some(node) => Some(&*node),
         _ => None,

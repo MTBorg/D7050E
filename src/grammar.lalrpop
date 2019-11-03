@@ -170,6 +170,7 @@ Instruction: Box<Node> = {
 	Let,
 	Assign,
 	If,
+	While,
 	<FuncCall> ";" => <>,
 	Return,
 	Debug_Context,
@@ -212,6 +213,17 @@ If: Box<Node> = {
 				None
 			)
 	)
+};
+
+While: Box<Node> = {
+	"while" <condition:Expr> <body:Body> => 
+		Box::new(
+			Node::While(
+				condition, 
+				body,
+				None
+			)
+		)
 };
 
 Bool: Box<Node> = {

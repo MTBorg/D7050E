@@ -46,6 +46,10 @@ pub enum TypeError {
     func_name: String,
     ret_type: Type,
   },
+  NonBooleanExpr {
+    expr: Node,
+    r#type: Option<Type>,
+  },
 }
 
 impl std::fmt::Display for TypeError {
@@ -135,6 +139,8 @@ impl std::fmt::Display for TypeError {
           func, missing_string
         )
       }
+      TypeError::NonBooleanExpr{ expr, r#type} => {
+          format!("Expression \n\t{}\nin conditional does not evaluate to a boolean (evaluated to {}", expr.expr_into_string(), if let Some(r#type) = r#type { r#type.to_str() } else{"void"})}
     };
     write!(f, "{}", message)
   }

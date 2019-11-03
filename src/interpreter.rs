@@ -88,6 +88,18 @@ pub fn eval(
         res
       };
     }
+    Node::While(expr, then_body, next_instr) => {
+      while eval(expr, context, funcs) == Node::Bool(true) {
+        context.push(Scope::new());
+        let res = eval(then_body, context, funcs);
+        match res {
+          Node::Empty => (),
+          _ => return res,
+        }
+        context.pop();
+      }
+      eval_next_instr!(next_instr, context, funcs)
+    }
     Node::DebugContext(next_instr) => {
       debug_print!(context);
       eval_next_instr!(next_instr, context, funcs)

@@ -186,7 +186,33 @@ fn type_check(
         Ok(None)
       };
     }
+    //TODO: Check if condition evaluates to boolean
     Node::If(condition, _, _, _) => type_check(condition, context, funcs),
+    Node::While(condition, _, _) => {
+      let cond_type = type_check(condition, context, funcs);
+      match cond_type {
+        Ok(res) => match res {
+          Some((r#type, _)) => {
+            //If the expression evaluates to a boolean
+            if let Type::Bool = r#type {
+              return Ok(Some((r#type, false)));
+            } else {
+              return Err(Box::new(TypeError::NonBooleanExpr {
+                expr: *condition.clone(),
+                r#type: Some(r#type),
+              }));
+            }
+          }
+          None => {
+            return Err(Box::new(TypeError::NonBooleanExpr {
+              expr: *condition.clone(),
+              r#type: None,
+            }));
+          }
+        },
+        Err(e) => return Err(e),
+      }
+    }
     Node::Return(expr, _) => {
       let (expr_type, _) = match type_check(expr, context, funcs) {
         Ok(res) => match res {
@@ -780,5 +806,18 @@ mod tests {
     context.push(Scope::from(func_dec.params.clone()));
     context.insert_type("a", Type::Int, false);
     assert!(type_check_function(&func_dec, &funcs).is_ok());
+  }
+
+  #[test]
+  pub fn while_non_boolean_condition() {
+    let func_dec = Func {
+      name: "foo".to_string(),
+      params: vec![],
+      ret_type: None,
+      body_start: Node::While(Box::new(Node::Number(4)), Box::new(Node::Empty), None),
+    };
+    let mut funcs: HashMap<String, Func> = HashMap::new();
+    funcs.insert("foo".to_string(), func_dec.clone());
+    assert!(!type_check_function(&func_dec, &funcs).is_ok());
   }
 }

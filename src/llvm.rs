@@ -164,7 +164,7 @@ impl Compiler {
     }
 
     let temp = unsafe { execution_engine.get_function("main").ok() };
-    // self.module.print_to_stderr(); //Uncomment this to get the llvm-ir
+    self.module.print_to_stderr(); //Uncomment this to get the llvm-ir
     return temp;
   }
 
@@ -250,6 +250,9 @@ impl Compiler {
           }
           None => self.compile_if(condition, then_body, func, funcs),
         };
+      }
+      Node::While(condition, then_body, _) => {
+        self.compile_while(condition, then_body, func, funcs);
       }
       Node::Assign(variable, expr, _) => {
         let variable = self.get_variable(variable);
@@ -339,6 +342,34 @@ impl Compiler {
     self.builder.position_at_end(&cont_block);
 
     // let phi = self.builder.build_phi(self.context.i32_type(), "iftmp");
+  }
+
+  fn compile_while(
+    &mut self,
+    condition: &Node,
+    then_body: &Node,
+    parent_block: &FunctionValue,
+    funcs: &HashMap<String, Func>,
+  ) {
+    let cond_block = self.context.append_basic_block(parent_block, "cond");
+    let then_block = self.context.append_basic_block(parent_block, "then");
+    let cont_block = self.context.append_basic_block(parent_block, "cont");
+
+    // Build the condition
+    self.builder.build_unconditional_branch(&cond_block);
+    self.builder.position_at_end(&cond_block);
+    let cond = self.compile_expr(condition, funcs);
+    self
+      .builder
+      .build_conditional_branch(cond, &then_block, &cont_block);
+
+    // Build the then block
+    self.builder.position_at_end(&then_block);
+    self.compile_block(then_body, &then_block, parent_block, funcs);
+
+    self.builder.build_unconditional_branch(&cond_block);
+
+    self.builder.position_at_end(&cont_block);
   }
 
   fn compile_block(
@@ -769,5 +800,20 @@ mod tests {
     unsafe {
       main.call();
     };
+  }
+
+  #[test]
+  fn while_count_to_10() {
+    let program =
+      Program::try_from(Path::new("tests/samples/while_count_to_10.rs")).unwrap();
+
+    let mut compiler = Compiler::new();
+
+    let main = compiler.compile_program(&program).unwrap();
+    let result;
+    unsafe {
+      result = main.call();
+    };
+    assert_eq!(result, 10);
   }
 }

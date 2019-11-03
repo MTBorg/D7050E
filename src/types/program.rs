@@ -158,4 +158,52 @@ mod tests {
     type_check_program(&program).unwrap();
     assert_eq!(program.interpret().unwrap(), Value::Int(14))
   }
+
+  #[test]
+  fn while_count_to_10() {
+    let program =
+      Program::try_from(Path::new("tests/samples/while_count_to_10.rs")).unwrap();
+    type_check_program(&program).unwrap();
+    assert_eq!(program.interpret().unwrap(), Value::Int(10))
+  }
+
+  #[test]
+  fn while_shadowing_original_unaffected() {
+    let program = Program::try_from(Path::new(
+      "tests/samples/while_shadowing_original_unaffected.rs",
+    ))
+    .unwrap();
+    type_check_program(&program).unwrap();
+    assert_eq!(program.interpret().unwrap(), Value::Int(4))
+  }
+
+  #[test]
+  fn while_does_not_enter_if_condition_false() {
+    let program = Program::try_from(Path::new(
+      "tests/samples/while_does_not_enter_if_condition_false.rs",
+    ))
+    .unwrap();
+    type_check_program(&program).unwrap();
+    assert_eq!(program.interpret().unwrap(), Value::Int(4))
+  }
+
+  #[test]
+  #[should_panic]
+  fn while_should_not_access_var_in_loop_from_outside() {
+    let program = Program::try_from(Path::new(
+      "tests/samples/while_should_not_access_var_in_loop_from_outside.rs",
+    ))
+    .unwrap();
+    program.interpret();
+  }
+
+  #[test]
+  #[should_panic]
+  fn while_should_not_access_var_in_loop_from_previous_iteration() {
+    let program = Program::try_from(Path::new(
+      "tests/samples/while_should_not_access_variable_from_previous_iteration.rs",
+    ))
+    .unwrap();
+    program.interpret();
+  }
 }
