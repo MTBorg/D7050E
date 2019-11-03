@@ -32,13 +32,6 @@ fn main() {
   };
   let type_res = type_check_program(&program);
   if let Ok(_) = type_res {
-    println!(
-      "Interpreter finished with exit code {}",
-			 match program.interpret() {
-        Some(value) => (&value).into(),
-        None => 0.to_string(),
-      }
-    );
     let mut compiler = Compiler::new();
 
     let main = compiler

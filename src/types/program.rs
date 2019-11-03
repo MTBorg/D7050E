@@ -36,6 +36,7 @@ impl std::convert::TryFrom<&Path> for Program {
 }
 
 impl Program {
+  #[allow(dead_code)]
   pub fn interpret(&self) -> Option<Value> {
     match self.funcs.get("main") {
       Some(main) => main.execute(&vec![], &self.funcs, &mut Context::from(main)),

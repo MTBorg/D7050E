@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::{collections::HashMap, convert::TryInto};
 
 use crate::types::{
