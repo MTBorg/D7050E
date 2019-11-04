@@ -83,7 +83,7 @@ Var: Box<Node> = {
 };
 
 FuncCall: Box<Node> = {
-	<func_name:Identifier> "(" <args:FuncArgs> ")" =>	
+	<func_name:FuncName> "(" <args:FuncArgs> ")" =>	
 		Box::new(
 			Node::FuncCall(
 				func_name,
