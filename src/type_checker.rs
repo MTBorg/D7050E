@@ -416,6 +416,10 @@ fn type_check(
       return Err(type_errors.drain(..).collect());
     }
 
+    if let Err(errors) = res {
+      return Err(errors);
+    }
+
     return res_next;
   } else {
     return res;
