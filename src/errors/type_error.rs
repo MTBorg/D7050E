@@ -29,7 +29,6 @@ pub enum TypeError {
     func: Func,
     expr_type: Type,
   },
-  InvalidNode,
   LetMissmatch {
     r#type: Type,
     expr_type: Type,
@@ -92,7 +91,6 @@ impl std::fmt::Display for TypeError {
           None => "void",
         }
       ),
-      TypeError::InvalidNode => "This node does not evaluate to a type".to_string(),
       TypeError::LetMissmatch { r#type, expr_type } => format!(
         "Let statement expected type {} because of declaration but received {}",
         r#type.to_str(),

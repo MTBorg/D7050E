@@ -239,8 +239,6 @@ fn type_check_function(
             ret_type: func.ret_type.clone().unwrap(),
           })]);
         }
-      } else {
-        println!("{:#?}", res);
       }
       Ok(())
     }
@@ -424,7 +422,6 @@ fn type_check(
   } else {
     return res;
   }
-  return res;
 }
 
 #[cfg(test)]
