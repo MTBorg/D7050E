@@ -163,7 +163,7 @@ impl Compiler {
       self.compile_func(&function, &func, &program.funcs);
     }
 
-    // self.module.print_to_stderr(); //Uncomment this to get the llvm-ir
+    self.module.print_to_stderr(); //Uncomment this to get the llvm-ir
     let temp = unsafe { execution_engine.get_function("main").ok() };
     return temp;
   }
@@ -308,11 +308,7 @@ impl Compiler {
     // emit merge block
     self.builder.position_at_end(&cont_block);
 
-    // let phi = self.builder.build_phi(self.context.i32_type(), "iftmp");
-
-    // phi.add_incoming(&[(&then_val, &then_bb), (&else_val, &else_bb)]);
-
-    // Ok(phi.as_basic_value().into_float_value());
+    self.builder.build_phi(self.context.i32_type(), "phi");
   }
   fn compile_if(
     &mut self,
@@ -341,7 +337,7 @@ impl Compiler {
     // emit merge block
     self.builder.position_at_end(&cont_block);
 
-    // let phi = self.builder.build_phi(self.context.i32_type(), "iftmp");
+    self.builder.build_phi(self.context.i32_type(), "phi");
   }
 
   fn compile_while(
